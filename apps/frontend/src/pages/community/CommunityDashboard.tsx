@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -21,6 +21,9 @@ import {
 import { CreateCommunityModal } from '@/components/CreateCommunityModal';
 import { QRCodeModal } from '@/components/QRCodeModal';
 import { CreateProposalModal } from '@/components/CreateProposalModal';
+import { communityService } from '@/lib/api/community';
+import { proposalsApi } from '@/lib/api/proposals';
+
 
 interface CommunityGroup {
   id: string;
@@ -49,59 +52,10 @@ interface Proposal {
   status: 'pending' | 'approved' | 'rejected' | 'executed';
   deadline: string;
   category: string;
+  communityId?: string;
 }
 
-const mockCommunityGroups: CommunityGroup[] = [
-  {
-    id: '1',
-    name: 'Chung cư Vinhomes Central Park - Tòa P1',
-    type: 'apartment',
-    members: 45,
-    balance: 125000000,
-    currency: 'VND',
-    description: 'Quỹ chung cư tòa P1 để chi trả các khoản bảo trì và sửa chữa',
-    joinLink: `${window.location.origin}/community/join/1`,
-    walletId: 'apt_vinhomes_p1_240125'
-  },
-  {
-    id: '2',
-    name: 'Hội phụ huynh lớp 10A1 - THPT Lê Quý Đôn',
-    type: 'school',
-    members: 32,
-    balance: 15000000,
-    currency: 'VND',
-    description: 'Quỹ lớp 10A1 cho các hoạt động ngoại khóa và sinh nhật tập thể',
-    joinLink: `${window.location.origin}/community/join/2`,
-    walletId: 'sch_lequydon_10a1_240120'
-  }
-];
 
-const mockProposals: Proposal[] = [
-  {
-    id: '1',
-    title: 'Sửa chữa hệ thống thang máy số 2',
-    description: 'Thay thế bộ điều khiển và cảm biến an toàn cho thang máy số 2 do hư hỏng',
-    amount: 25000000,
-    currency: 'VND',
-    proposer: 'Ban quản lý tòa nhà',
-    votes: { approve: 28, reject: 5, total: 45 },
-    status: 'pending',
-    deadline: '2024-01-15',
-    category: 'Bảo trì'
-  },
-  {
-    id: '2',
-    title: 'Tổ chức sinh nhật tập thể tháng 1',
-    description: 'Mua bánh kem và trang trí cho buổi sinh nhật tập thể các bạn sinh tháng 1',
-    amount: 2500000,
-    currency: 'VND',
-    proposer: 'Nguyễn Thị Lan',
-    votes: { approve: 25, reject: 2, total: 32 },
-    status: 'approved',
-    deadline: '2024-01-10',
-    category: 'Sự kiện'
-  }
-];
 
 const formatCurrency = (amount: number, currency: string) => {
   if (currency === 'VND') {
@@ -134,16 +88,70 @@ const getStatusText = (status: string) => {
 };
 
 export function CommunityDashboard() {
-  const [selectedGroup, setSelectedGroup] = useState<string>(mockCommunityGroups[0].id);
-  const [communityGroups, setCommunityGroups] = useState<CommunityGroup[]>(mockCommunityGroups);
+  const [selectedGroup, setSelectedGroup] = useState<string>('');
+  const [communityGroups, setCommunityGroups] = useState<CommunityGroup[]>([]);
+  const [proposals, setProposals] = useState<Proposal[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
+  const [showProposalModal, setShowProposalModal] = useState(false);
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   const currentGroup = communityGroups.find(g => g.id === selectedGroup);
 
+  // Fetch communities on component mount
+  useEffect(() => {
+    const fetchCommunities = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await communityService.getUserCommunities();
+        
+        if (response.success && response.data) {
+          setCommunityGroups(response.data.communities);
+          // Set first community as selected if available
+          if (response.data.communities.length > 0) {
+            setSelectedGroup(response.data.communities[0].id);
+          }
+        } else {
+          setError(`Failed to load communities: ${response.message || 'Unknown error'}`);
+        }
+      } catch (error) {
+        console.error('Error fetching communities:', error);
+        setError('Failed to connect to server. Please check your internet connection and try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCommunities();
+  }, []);
+
+  // Fetch proposals when selected community changes
+  useEffect(() => {
+    const fetchProposals = async () => {
+      if (!selectedGroup) {
+        setProposals([]);
+        return;
+      }
+      
+      try {
+        const response = await proposalsApi.getProposals(selectedGroup);
+        setProposals(response);
+      } catch (error) {
+        console.error('Error fetching proposals:', error);
+        setProposals([]);
+        // Note: Error handling for proposals can be added here if needed
+      }
+    };
+
+    fetchProposals();
+  }, [selectedGroup]);
+
   const getVotePercentage = (proposal: Proposal) => {
-    const requiredVotes = Math.ceil(currentGroup!.members * 2 / 3);
+    if (!currentGroup) return 0;
+    const requiredVotes = Math.ceil(currentGroup.members * 2 / 3);
     return (proposal.votes.approve / requiredVotes) * 100;
   };
 
@@ -168,8 +176,114 @@ export function CommunityDashboard() {
     }
   };
 
+  const handleProposalCreated = async (proposalData: any) => {
+    try {
+      // For now, add to local state (will be replaced with API call)
+      const newProposal: Proposal = {
+        ...proposalData,
+        communityId: selectedGroup
+      };
+      setProposals(prev => [newProposal, ...prev]);
+      setShowProposalModal(false);
+      
+      // TODO: Uncomment when backend API is ready
+      // const response = await proposalsApi.createProposal({
+      //   title: proposalData.title,
+      //   description: proposalData.description,
+      //   amount: proposalData.amount,
+      //   category: proposalData.category,
+      //   communityId: selectedGroup
+      // });
+      // if (response.success) {
+      //   setProposals(prev => [response.data, ...prev]);
+      //   setShowProposalModal(false);
+      // }
+    } catch (error) {
+      console.error('Error creating proposal:', error);
+      alert('Có lỗi xảy ra khi tạo đề xuất. Vui lòng thử lại.');
+    }
+  };
+
+  const handleVote = async (proposalId: string, voteType: 'approve' | 'reject') => {
+    try {
+      // For now, update local state (will be replaced with API call)
+      setProposals(prev => prev.map(proposal => {
+        if (proposal.id === proposalId) {
+          const updatedVotes = {
+            ...proposal.votes,
+            [voteType]: proposal.votes[voteType] + 1,
+            total: proposal.votes.total + 1
+          };
+          
+          // Check if proposal should be approved (2/3 majority)
+          const currentGroup = communityGroups.find(g => g.id === selectedGroup);
+          const requiredVotes = currentGroup ? Math.ceil((currentGroup.members * 2) / 3) : 1;
+          
+          let newStatus = proposal.status;
+          if (updatedVotes.approve >= requiredVotes) {
+            newStatus = 'approved';
+          } else if (updatedVotes.reject > (currentGroup?.members || 0) - requiredVotes) {
+            newStatus = 'rejected';
+          }
+          
+          return {
+            ...proposal,
+            votes: updatedVotes,
+            status: newStatus
+          };
+        }
+        return proposal;
+      }));
+      
+      alert(`Bạn đã bỏ phiếu ${voteType === 'approve' ? 'đồng ý' : 'từ chối'} thành công!`);
+      
+      // TODO: Uncomment when backend API is ready
+      // const response = await proposalsApi.voteOnProposal({
+      //   proposalId,
+      //   voteType
+      // });
+      // if (response.success) {
+      //   setProposals(prev => prev.map(p => 
+      //     p.id === proposalId ? response.data.proposal : p
+      //   ));
+      //   alert(`Bạn đã bỏ phiếu ${voteType === 'approve' ? 'đồng ý' : 'từ chối'} thành công!`);
+      // }
+    } catch (error) {
+      console.error('Error voting:', error);
+      alert('Có lỗi xảy ra khi bỏ phiếu. Vui lòng thử lại.');
+    }
+  };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang tải dữ liệu cộng đồng...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Error Message */}
+      {error && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-yellow-700">{error}</p>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -189,7 +303,11 @@ export function CommunityDashboard() {
             <Plus className="w-4 h-4 mr-2" />
             Tạo cộng đồng
           </Button>
-          <Button size="sm" className="bg-orange-600 hover:bg-orange-700">
+          <Button 
+            size="sm" 
+            className="bg-orange-600 hover:bg-orange-700"
+            onClick={() => setShowProposalModal(true)}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Đề xuất chi tiêu
           </Button>
@@ -203,8 +321,22 @@ export function CommunityDashboard() {
           <CardDescription>Chọn cộng đồng để xem chi tiết</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {communityGroups.map((group) => (
+          {communityGroups.length === 0 && !loading ? (
+            <div className="text-center py-8">
+              <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có cộng đồng nào</h3>
+              <p className="text-gray-500 mb-4">Bạn chưa tham gia hoặc tạo cộng đồng nào. Hãy tạo cộng đồng đầu tiên của bạn!</p>
+              <Button 
+                onClick={() => setShowCreateModal(true)}
+                className="bg-orange-600 hover:bg-orange-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Tạo cộng đồng đầu tiên
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {communityGroups.map((group) => (
               <Card
                 key={group.id}
                 className={`transition-all ${
@@ -273,7 +405,8 @@ export function CommunityDashboard() {
                 </CardContent>
               </Card>
             ))}
-          </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -319,7 +452,7 @@ export function CommunityDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Đang bỏ phiếu</p>
                   <p className="text-lg font-semibold">
-                    {mockProposals.filter(p => p.status === 'pending').length} đề xuất
+                    {proposals.filter(p => p.status === 'pending').length} đề xuất
                   </p>
                 </div>
               </div>
@@ -358,7 +491,7 @@ export function CommunityDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {mockProposals.map((proposal) => {
+              {proposals.filter(proposal => !proposal.communityId || proposal.communityId === selectedGroup).map((proposal) => {
               const votePercentage = getVotePercentage(proposal);
               const requiredVotes = Math.ceil(currentGroup!.members * 2 / 3);
               
@@ -415,10 +548,19 @@ export function CommunityDashboard() {
                       </div>
                       {proposal.status === 'pending' && (
                         <div className="flex space-x-2">
-                          <Button size="sm" variant="outline" className="text-red-600 border-red-200">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-red-600 border-red-200"
+                            onClick={() => handleVote(proposal.id, 'reject')}
+                          >
                             Từ chối
                           </Button>
-                          <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                          <Button 
+                            size="sm" 
+                            className="bg-green-600 hover:bg-green-700"
+                            onClick={() => handleVote(proposal.id, 'approve')}
+                          >
                             Đồng ý
                           </Button>
                         </div>
@@ -442,7 +584,10 @@ export function CommunityDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+        <Card 
+          className="hover:shadow-md transition-shadow cursor-pointer"
+          onClick={() => setShowProposalModal(true)}
+        >
           <CardContent className="p-6 text-center">
             <FileText className="w-12 h-12 text-blue-600 mx-auto mb-3" />
             <h3 className="font-semibold mb-2">Tạo đề xuất</h3>
@@ -495,6 +640,14 @@ export function CommunityDashboard() {
         walletId={currentGroup?.walletId || ''}
         amount={100000}
         title={`Nạp tiền vào ${currentGroup?.name}`}
+      />
+      
+      <CreateProposalModal
+        isOpen={showProposalModal}
+        onClose={() => setShowProposalModal(false)}
+        onProposalCreated={handleProposalCreated}
+        communityId={selectedGroup}
+        communityName={currentGroup?.name || ''}
       />
     </div>
   );

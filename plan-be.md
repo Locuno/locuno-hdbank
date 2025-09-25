@@ -292,7 +292,7 @@ const AuthDataSchema = z.object({
       "type": "TRANSFER",
       "status": "COMPLETED",
       "description": "Transfer to savings",
-      "createdAt": "2024-01-01T00:00:00Z"
+      "createdAt": "2025-01-01T00:00:00Z"
     }
   ],
   "pagination": {
@@ -338,7 +338,7 @@ const AuthDataSchema = z.object({
 ```json
 {
   "status": "healthy",
-  "timestamp": "2024-01-01T00:00:00Z",
+  "timestamp": "2025-01-01T00:00:00Z",
   "service": "hdbank-backend",
   "version": "1.0.0",
   "environment": "development"
@@ -352,7 +352,7 @@ const AuthDataSchema = z.object({
 ```json
 {
   "status": "healthy",
-  "timestamp": "2024-01-01T00:00:00Z",
+  "timestamp": "2025-01-01T00:00:00Z",
   "checks": {
     "database": "healthy",
     "cache": "healthy",

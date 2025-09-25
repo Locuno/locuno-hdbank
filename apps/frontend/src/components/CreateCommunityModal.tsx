@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { X, Users, Building, School, MapPin, Copy, Check } from 'lucide-react';
+import { communityService } from '@/lib/api/community';
 
 interface CreateCommunityModalProps {
   isOpen: boolean;
@@ -79,30 +80,33 @@ export function CreateCommunityModal({ isOpen, onClose, onCommunityCreated }: Cr
 
     setLoading(true);
     try {
-      // Simulate API call - replace with actual API integration
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const communityId = `comm_${Date.now()}`;
-      const walletId = generateWalletId(formData.name, formData.type);
-      const joinLink = generateJoinLink(communityId);
-      
-      const newCommunity: CommunityGroup = {
-        id: communityId,
+      const result = await communityService.createCommunity({
         name: formData.name,
         type: formData.type,
         description: formData.description,
-        members: 1, // Creator is the first member
-        balance: 0,
-        currency: 'VND',
-        joinLink,
-        walletId
-      };
+      });
       
-      setCreatedCommunity(newCommunity);
-      setStep('success');
-      onCommunityCreated(newCommunity);
+      if (result.success && result.data?.community) {
+        const community = result.data.community;
+        const walletId = generateWalletId(formData.name, formData.type);
+        const joinLink = generateJoinLink(community.id);
+        
+        const newCommunity: CommunityGroup = {
+          ...community,
+          joinLink,
+          walletId: community.walletId || walletId
+        };
+        
+        setCreatedCommunity(newCommunity);
+        setStep('success');
+        onCommunityCreated(newCommunity);
+      } else {
+        console.error('Failed to create community:', result.message);
+        alert('Có lỗi xảy ra khi tạo cộng đồng. Vui lòng thử lại.');
+      }
     } catch (error) {
       console.error('Failed to create community:', error);
+      alert('Có lỗi xảy ra khi tạo cộng đồng. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
 import {
   Gift,
   Star,
@@ -24,7 +25,11 @@ import {
   Percent,
   Wallet,
   Gavel,
-
+  QrCode,
+  CheckCircle,
+  X,
+  Plus,
+  Minus
 } from 'lucide-react';
 
 interface UserPoints {
@@ -89,7 +94,7 @@ const mockDeals: Deal[] = [
     pointsRequired: 8000,
     category: 'flight',
     brand: 'VietJet Air',
-    validUntil: '2024-02-15',
+    validUntil: '2025-02-15',
     available: 15,
     image: '✈️',
     isHot: true,
@@ -98,7 +103,7 @@ const mockDeals: Deal[] = [
     isAuction: true,
     auctionStartPrice: 1000,
     currentBid: 1250000,
-    auctionEndTime: '2024-01-28T23:59:59',
+    auctionEndTime: '2025-01-28T23:59:59',
     bidCount: 47
   },
   {
@@ -110,7 +115,7 @@ const mockDeals: Deal[] = [
     pointsRequired: 5500,
     category: 'flight',
     brand: 'VietJet Air',
-    validUntil: '2024-02-28',
+    validUntil: '2025-02-28',
     available: 8,
     image: '✈️',
     discount: 33,
@@ -125,7 +130,7 @@ const mockDeals: Deal[] = [
     pointsRequired: 12000,
     category: 'flight',
     brand: 'VietJet Air',
-    validUntil: '2024-03-15',
+    validUntil: '2025-03-15',
     available: 6,
     image: '✈️',
     isNew: true,
@@ -143,7 +148,7 @@ const mockDeals: Deal[] = [
     pointsRequired: 2000,
     category: 'banking',
     brand: 'HD Bank',
-    validUntil: '2024-12-31',
+    validUntil: '2025-12-31',
     available: 50,
     image: '💳',
     isHot: true,
@@ -152,7 +157,7 @@ const mockDeals: Deal[] = [
     isAuction: true,
     auctionStartPrice: 1000,
     currentBid: 15000,
-    auctionEndTime: '2024-01-30T18:00:00',
+    auctionEndTime: '2025-01-30T18:00:00',
     bidCount: 23
   },
   {
@@ -164,7 +169,7 @@ const mockDeals: Deal[] = [
     pointsRequired: 9000,
     category: 'healthcare',
     brand: 'HD Bank',
-    validUntil: '2024-06-30',
+    validUntil: '2025-06-30',
     available: 20,
     image: '🏥',
     discount: 31,
@@ -179,7 +184,7 @@ const mockDeals: Deal[] = [
     pointsRequired: 25000,
     category: 'banking',
     brand: 'HD Bank',
-    validUntil: '2024-04-30',
+    validUntil: '2025-04-30',
     available: 5,
     image: '🏠',
     isLimited: true,
@@ -197,7 +202,7 @@ const mockDeals: Deal[] = [
     pointsRequired: 15000,
     category: 'hotel',
     brand: 'Vinpearl',
-    validUntil: '2024-03-01',
+    validUntil: '2025-03-01',
     available: 12,
     image: '🏖️',
     discount: 31,
@@ -212,7 +217,7 @@ const mockDeals: Deal[] = [
     pointsRequired: 11000,
     category: 'hotel',
     brand: 'Vinpearl',
-    validUntil: '2024-02-20',
+    validUntil: '2025-02-20',
     available: 8,
     image: '🏖️',
     isHot: true,
@@ -221,7 +226,7 @@ const mockDeals: Deal[] = [
     isAuction: true,
     auctionStartPrice: 1000,
     currentBid: 2800000,
-    auctionEndTime: '2024-01-29T20:00:00',
+    auctionEndTime: '2025-01-29T20:00:00',
     bidCount: 89
   },
 
@@ -235,7 +240,7 @@ const mockDeals: Deal[] = [
     pointsRequired: 1000,
     category: 'transport',
     brand: 'VinFast',
-    validUntil: '2024-03-31',
+    validUntil: '2025-03-31',
     available: 30,
     image: '🚗',
     isNew: true,
@@ -251,7 +256,7 @@ const mockDeals: Deal[] = [
     pointsRequired: 18000,
     category: 'transport',
     brand: 'VinFast',
-    validUntil: '2024-05-15',
+    validUntil: '2025-05-15',
     available: 15,
     image: '🔋',
     discount: 47,
@@ -268,7 +273,7 @@ const mockDeals: Deal[] = [
     pointsRequired: 3000,
     category: 'retail',
     brand: 'VinMart',
-    validUntil: '2024-02-29',
+    validUntil: '2025-02-29',
     available: 100,
     image: '🛒',
     discount: 20,
@@ -283,7 +288,7 @@ const mockDeals: Deal[] = [
     pointsRequired: 6000,
     category: 'retail',
     brand: 'VinMart+',
-    validUntil: '2024-01-31',
+    validUntil: '2025-01-31',
     available: 25,
     image: '🥬',
     isLimited: true,
@@ -301,7 +306,7 @@ const mockDeals: Deal[] = [
     pointsRequired: 3500,
     category: 'restaurant',
     brand: 'Lotte Hotel',
-    validUntil: '2024-01-31',
+    validUntil: '2025-01-31',
     available: 20,
     image: '🍽️',
     discount: 33,
@@ -316,7 +321,7 @@ const mockDeals: Deal[] = [
     pointsRequired: 4000,
     category: 'entertainment',
     brand: 'Vinpearl Land',
-    validUntil: '2024-04-15',
+    validUntil: '2025-04-15',
     available: 40,
     image: '🎢',
     isHot: true,
@@ -332,7 +337,7 @@ const mockDeals: Deal[] = [
     pointsRequired: 1200,
     category: 'restaurant',
     brand: 'Highlands Coffee',
-    validUntil: '2024-02-10',
+    validUntil: '2025-02-10',
     available: 200,
     image: '☕',
     discount: 25,
@@ -407,11 +412,56 @@ const getCategoryColor = (category: string) => {
 };
 
 export function RewardsPage() {
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  const [showAuctionModal, setShowAuctionModal] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
+  const [bidAmount, setBidAmount] = useState<string>('');
+  const [purchaseMethod, setPurchaseMethod] = useState<'wallet' | 'qr'>('wallet');
 
-  const filteredDeals = selectedCategory === 'all' 
-    ? mockDeals 
+  const filteredDeals = selectedCategory === 'all'
+    ? mockDeals
     : mockDeals.filter(deal => deal.category === selectedCategory);
+
+  const handlePurchase = (deal: Deal, method: 'wallet' | 'qr') => {
+    setSelectedDeal(deal);
+    setPurchaseMethod(method);
+    if (method === 'qr') {
+      setShowQRModal(true);
+    } else {
+      setShowPurchaseModal(true);
+    }
+  };
+
+  const handleAuction = (deal: Deal) => {
+    setSelectedDeal(deal);
+    setBidAmount(((deal.currentBid || deal.auctionStartPrice || 1000) + 1000).toString());
+    setShowAuctionModal(true);
+  };
+
+  const confirmPurchase = () => {
+    if (selectedDeal) {
+      alert(`Đã mua thành công "${selectedDeal.title}" bằng ${purchaseMethod === 'wallet' ? 'ví gia đình/cộng đồng' : 'QR code'}!`);
+      setShowPurchaseModal(false);
+      setShowQRModal(false);
+      setSelectedDeal(null);
+    }
+  };
+
+  const confirmBid = () => {
+    if (selectedDeal && bidAmount) {
+      alert(`Đã đặt giá thành công ${parseInt(bidAmount).toLocaleString()} VND cho "${selectedDeal.title}"!`);
+      setShowAuctionModal(false);
+      setSelectedDeal(null);
+      setBidAmount('');
+      // Navigate to My Auctions page after successful bid
+      setTimeout(() => {
+        navigate('/my-auctions');
+      }, 1000);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -462,17 +512,17 @@ export function RewardsPage() {
                   </div>
                 </div>
                 <h4 className="font-bold text-white mb-1 text-sm">{deal.title}</h4>
-                <div className="flex items-center justify-between text-xs text-yellow-100 mb-2">
+                <div className="flex items-center justify-between text-xs text-white mb-2">
                   <span>Giá hiện tại:</span>
-                  <span className="font-bold text-white">{formatCurrency(deal.currentBid || 1000)}</span>
+                  <span className="font-bold text-yellow-200">{formatCurrency(deal.currentBid || 1000)}</span>
                 </div>
-                <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center justify-between text-xs text-white">
                   <div className="flex items-center space-x-1">
-                    <TrendingUp className="w-3 h-3" />
+                    <TrendingUp className="w-3 h-3 text-green-300" />
                     <span>{deal.bidCount || 0} lượt đấu</span>
                   </div>
                   <div className="flex items-center space-x-1">
-                    <Timer className="w-3 h-3" />
+                    <Timer className="w-3 h-3 text-red-300" />
                     <span>Còn {Math.ceil((new Date(deal.auctionEndTime || '').getTime() - new Date().getTime()) / (1000 * 60 * 60))}h</span>
                   </div>
                 </div>
@@ -787,6 +837,7 @@ export function RewardsPage() {
                     {deal.isAuction ? (
                       <div className="space-y-2">
                         <Button
+                          onClick={() => handleAuction(deal)}
                           className="w-full font-bold bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
                         >
                           <div className="flex items-center justify-center space-x-2">
@@ -799,14 +850,26 @@ export function RewardsPage() {
                         </div>
                       </div>
                     ) : (
-                      <Button
-                        className="w-full font-bold bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
-                      >
-                        <div className="flex items-center justify-center space-x-2">
-                          <Wallet className="w-4 h-4" />
-                          <span>Mua bằng ví gia đình/cộng đồng</span>
-                        </div>
-                      </Button>
+                      <div className="space-y-2">
+                        <Button
+                          onClick={() => handlePurchase(deal, 'wallet')}
+                          className="w-full font-bold bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+                        >
+                          <div className="flex items-center justify-center space-x-2">
+                            <Wallet className="w-4 h-4" />
+                            <span>Mua bằng ví gia đình/cộng đồng</span>
+                          </div>
+                        </Button>
+                        <Button
+                          onClick={() => handlePurchase(deal, 'qr')}
+                          className="w-full font-bold bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+                        >
+                          <div className="flex items-center justify-center space-x-2">
+                            <QrCode className="w-4 h-4" />
+                            <span>Mua bằng QR Code</span>
+                          </div>
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </CardContent>
@@ -855,6 +918,200 @@ export function RewardsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Purchase Modal */}
+      {showPurchaseModal && selectedDeal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold">Xác nhận mua hàng</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowPurchaseModal(false)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <span className="text-2xl">{selectedDeal.image}</span>
+                <div>
+                  <h4 className="font-medium">{selectedDeal.title}</h4>
+                  <p className="text-sm text-gray-600">{selectedDeal.brand}</p>
+                </div>
+              </div>
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <span>Giá gốc:</span>
+                  <span className="line-through text-gray-500">{formatCurrency(selectedDeal.originalPrice)}</span>
+                </div>
+                <div className="flex justify-between items-center mb-2">
+                  <span>Giá ưu đãi:</span>
+                  <span className="font-bold text-green-600">{formatCurrency(selectedDeal.discountPrice)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Phương thức:</span>
+                  <span className="font-medium text-blue-600">Ví gia đình/cộng đồng</span>
+                </div>
+              </div>
+              <div className="flex space-x-3">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setShowPurchaseModal(false)}
+                >
+                  Hủy
+                </Button>
+                <Button
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                  onClick={confirmPurchase}
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Xác nhận mua
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* QR Code Modal */}
+      {showQRModal && selectedDeal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold">Thanh toán QR Code</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowQRModal(false)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="space-y-4">
+              <div className="text-center">
+                <div className="bg-gray-100 p-8 rounded-lg mb-4">
+                  <div className="w-32 h-32 bg-black mx-auto mb-4 flex items-center justify-center">
+                    <QrCode className="w-16 h-16 text-white" />
+                  </div>
+                  <p className="text-sm text-gray-600">Quét mã QR để thanh toán</p>
+                </div>
+                <div className="bg-blue-50 p-3 rounded-lg">
+                  <h4 className="font-medium">{selectedDeal.title}</h4>
+                  <p className="text-lg font-bold text-blue-600">{formatCurrency(selectedDeal.discountPrice)}</p>
+                </div>
+              </div>
+              <div className="flex space-x-3">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setShowQRModal(false)}
+                >
+                  Hủy
+                </Button>
+                <Button
+                  className="flex-1 bg-purple-600 hover:bg-purple-700"
+                  onClick={confirmPurchase}
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Đã thanh toán
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Auction Modal */}
+      {showAuctionModal && selectedDeal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold">Đấu giá sản phẩm</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAuctionModal(false)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <span className="text-2xl">{selectedDeal.image}</span>
+                <div>
+                  <h4 className="font-medium">{selectedDeal.title}</h4>
+                  <p className="text-sm text-gray-600">{selectedDeal.brand}</p>
+                </div>
+              </div>
+              <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                <div className="flex justify-between items-center mb-2">
+                  <span>Giá hiện tại:</span>
+                  <span className="font-bold text-yellow-700">{formatCurrency(selectedDeal.currentBid || selectedDeal.auctionStartPrice || 1000)}</span>
+                </div>
+                <div className="flex justify-between items-center mb-2">
+                  <span>Số lượt đấu:</span>
+                  <span className="text-blue-600">{selectedDeal.bidCount || 0} lượt</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Kết thúc:</span>
+                  <span className="text-red-600">{new Date(selectedDeal.auctionEndTime || '').toLocaleDateString('vi-VN')}</span>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Giá đấu của bạn (VND):</label>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setBidAmount((parseInt(bidAmount || '0') - 1000).toString())}
+                    disabled={parseInt(bidAmount || '0') <= (selectedDeal.currentBid || selectedDeal.auctionStartPrice || 1000)}
+                  >
+                    <Minus className="w-4 h-4" />
+                  </Button>
+                  <input
+                    type="number"
+                    value={bidAmount}
+                    onChange={(e) => setBidAmount(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                    min={(selectedDeal.currentBid || selectedDeal.auctionStartPrice || 1000) + 1000}
+                    step="1000"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setBidAmount((parseInt(bidAmount || '0') + 1000).toString())}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Tối thiểu: {formatCurrency((selectedDeal.currentBid || selectedDeal.auctionStartPrice || 1000) + 1000)}
+                </p>
+              </div>
+              <div className="flex space-x-3">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setShowAuctionModal(false)}
+                >
+                  Hủy
+                </Button>
+                <Button
+                  className="flex-1 bg-yellow-600 hover:bg-yellow-700"
+                  onClick={confirmBid}
+                  disabled={!bidAmount || parseInt(bidAmount) <= (selectedDeal.currentBid || selectedDeal.auctionStartPrice || 1000)}
+                >
+                  <Gavel className="w-4 h-4 mr-2" />
+                  Đặt giá
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

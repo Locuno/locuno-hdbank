@@ -32,7 +32,7 @@ export function DashboardPage() {
       description: 'Salary Deposit',
       amount: 2500.00,
       type: 'credit',
-      date: '2024-01-15',
+      date: '2025-01-15',
       category: 'Income',
     },
     {
@@ -40,7 +40,7 @@ export function DashboardPage() {
       description: 'Grocery Store',
       amount: -85.50,
       type: 'debit',
-      date: '2024-01-14',
+      date: '2025-01-14',
       category: 'Food',
     },
     {
@@ -48,7 +48,7 @@ export function DashboardPage() {
       description: 'Transfer to Savings',
       amount: -500.00,
       type: 'transfer',
-      date: '2024-01-13',
+      date: '2025-01-13',
       category: 'Transfer',
     },
     {
@@ -56,7 +56,7 @@ export function DashboardPage() {
       description: 'Online Purchase',
       amount: -129.99,
       type: 'debit',
-      date: '2024-01-12',
+      date: '2025-01-12',
       category: 'Shopping',
     },
   ];

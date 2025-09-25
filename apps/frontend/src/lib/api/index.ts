@@ -1,20 +1,57 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
-// API Configuration
+// API Configuration with automatic localhost detection and fallback
+const getBaseURL = (): string => {
+  // If VITE_API_URL is explicitly set, use it
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // In development mode, try localhost first, fallback to production
+  if (import.meta.env.DEV) {
+    return 'http://localhost:8787';
+  }
+  
+  // Production fallback
+  return 'https://hdbank-backend.4rqnf2gvxf.workers.dev';
+};
+
+// Fallback URL for when localhost is not available
+const PRODUCTION_URL = 'https://hdbank-backend.4rqnf2gvxf.workers.dev';
+let currentBaseURL = getBaseURL();
+let hasTriedFallback = false;
+
 const API_CONFIG = {
-  baseURL: import.meta.env.VITE_API_URL || 'https://hdbank-backend.4rqnf2gvxf.workers.dev',
+  baseURL: currentBaseURL,
   timeout: parseInt(import.meta.env.VITE_API_TIMEOUT || '30000'),
   retryAttempts: parseInt(import.meta.env.VITE_API_RETRY_ATTEMPTS || '3'),
 };
 
+// Log the API base URL in development for debugging
+if (import.meta.env.DEV) {
+  console.log('🔗 API Base URL:', API_CONFIG.baseURL);
+}
+
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
-  baseURL: API_CONFIG.baseURL,
+  baseURL: currentBaseURL,
   timeout: API_CONFIG.timeout,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+// Function to switch to production fallback
+const switchToProductionFallback = () => {
+  if (!hasTriedFallback && import.meta.env.DEV && currentBaseURL.includes('localhost')) {
+    hasTriedFallback = true;
+    currentBaseURL = PRODUCTION_URL;
+    apiClient.defaults.baseURL = PRODUCTION_URL;
+    console.warn('🔄 Localhost backend not available, switching to production:', PRODUCTION_URL);
+    return true;
+  }
+  return false;
+};
 
 // Request interceptor
 apiClient.interceptors.request.use(
@@ -61,6 +98,14 @@ apiClient.interceptors.response.use(
       window.location.href = '/login';
       
       return Promise.reject(error);
+    }
+    
+    // Handle localhost connection errors - fallback to production
+    if (!error.response && (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK')) {
+      if (switchToProductionFallback()) {
+        // Retry the request with production URL
+        return apiClient(originalRequest);
+      }
     }
     
     // Retry logic for network errors

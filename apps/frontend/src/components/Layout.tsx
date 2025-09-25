@@ -1,6 +1,6 @@
 import { ReactNode, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import {
   Home,
   Heart,
@@ -9,7 +9,8 @@ import {
   User,
   Menu,
   X,
-  LogOut
+  LogOut,
+  Gavel
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -30,6 +31,7 @@ export function Layout({ children }: LayoutProps) {
     { name: 'Gia đình', href: '/family', icon: Heart },
     { name: 'Cộng đồng', href: '/community', icon: Users },
     { name: 'Phần thưởng', href: '/rewards', icon: Gift },
+    { name: 'Đấu giá của tôi', href: '/my-auctions', icon: Gavel },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -178,7 +180,7 @@ export function Layout({ children }: LayoutProps) {
               <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
                 <span className="text-white font-bold text-xs">L</span>
               </div>
-              <span className="text-gray-600">© 2024 Locuno. Được phát triển bởi Locuno</span>
+              <span className="text-gray-600">© 2025 Locuno. Được phát triển bởi Locuno</span>
             </div>
             <div className="flex space-x-6 text-sm text-gray-600">
               <Link to="/privacy" className="hover:text-gray-900">Chính sách bảo mật</Link>

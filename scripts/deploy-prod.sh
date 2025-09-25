@@ -111,7 +111,7 @@ cd apps/frontend
 # Check if Wrangler CLI is available
 if command -v wrangler &> /dev/null; then
     log "Deploying to Cloudflare Pages: $CF_PAGES_PROJECT_NAME"
-    if wrangler pages deploy dist --project-name "${CF_PAGES_PROJECT_NAME:-hdbank-frontend}" --compatibility-date=2024-01-15; then
+    if wrangler pages deploy dist --project-name "${CF_PAGES_PROJECT_NAME:-hdbank-frontend}" --compatibility-date=2025-01-15; then
         success "Frontend deployed to Cloudflare Pages"
     else
         error "Frontend deployment to Cloudflare Pages failed"

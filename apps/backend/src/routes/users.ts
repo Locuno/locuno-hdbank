@@ -27,11 +27,51 @@ const users = new Hono<{ Bindings: Bindings }>();
 
 // JWT middleware for protected routes
 users.use('*', async (c, next) => {
-  const config = createConfig(c.env);
-  const jwtMiddleware = jwt({
-    secret: config.jwt.secret,
-  });
-  return jwtMiddleware(c, next);
+  try {
+    const config = createConfig(c.env);
+    const jwtMiddleware = jwt({
+      secret: config.jwt.secret,
+    });
+    return await jwtMiddleware(c, next);
+  } catch (error) {
+    console.error('JWT middleware error:', error);
+    return c.json({
+      success: false,
+      message: 'Authentication required',
+      error: 'Invalid or missing JWT token'
+    }, 401);
+  }
+});
+
+// Get current user profile (legacy endpoint)
+users.get('/profile', async (c) => {
+  try {
+    const payload = c.get('jwtPayload');
+    const userService = new UserService(c.env);
+    
+    const result = await userService.getUserProfile(payload.email);
+    
+    if (!result.success) {
+      return c.json({
+        success: false,
+        message: result.error || 'Failed to retrieve profile',
+      }, 404);
+    }
+    
+    return c.json({
+      success: true,
+      message: 'Profile retrieved successfully',
+      data: {
+        user: result.user,
+      },
+    });
+  } catch (error) {
+    console.error('Get profile error:', error);
+    return c.json({
+      success: false,
+      message: 'Internal server error',
+    }, 500);
+  }
 });
 
 // Get current user profile

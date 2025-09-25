@@ -88,7 +88,7 @@ Update the `wrangler.toml` file with your specific settings:
 ```toml
 name = "hdbank-backend"
 main = "src/index.ts"
-compatibility_date = "2024-01-15"
+compatibility_date = "2025-01-15"
 compatibility_flags = ["nodejs_compat"]
 
 [env.production]

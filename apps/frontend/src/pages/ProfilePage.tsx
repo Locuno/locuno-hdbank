@@ -54,7 +54,7 @@ const mockUserProfile: UserProfile = {
   avatar: '👨‍💼',
   role: 'both',
   eKYCVerified: true,
-  joinedDate: '2024-01-01'
+  joinedDate: '2025-01-01'
 };
 
 const mockPrivacySettings: PrivacySettings = {
