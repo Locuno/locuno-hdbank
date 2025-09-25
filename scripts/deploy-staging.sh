@@ -55,7 +55,7 @@ log "Deploying to staging environment..."
 cd apps/frontend
 if command -v wrangler &> /dev/null; then
     log "Deploying frontend to Cloudflare Pages staging..."
-    wrangler pages deploy out --project-name "${CF_PAGES_PROJECT_NAME:-hdbank-frontend}" --compatibility-date=2024-01-15
+    wrangler pages deploy dist --project-name "${CF_PAGES_PROJECT_NAME:-hdbank-frontend}" --compatibility-date=2024-01-15
     success "Frontend deployed to staging"
 else
     error "Wrangler CLI not available"

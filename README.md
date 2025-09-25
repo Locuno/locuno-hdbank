@@ -162,4 +162,43 @@ Locuno is designed not as a standalone product, but as a loyalty operating syste
 ### The Vision: Building Vietnam's Trust Infrastructure
 
 With a team that combines deep experience in building enterprise-grade technology and scaling market-leading operations, we are uniquely positioned to execute this vision. We are not just building an app; we are building the digital trust infrastructure for the next generation of Vietnamese society. Our ask is simple: a pilot program within the Sovico ecosystem to demonstrate that safety, transparency, and trust are the most potent and untapped drivers of growth and loyalty in the modern economy.
+ocuno là trung tâm của niềm tin và sự tham gia.
 
+### Tầm nhìn: Xây dựng Cơ sở hạ tầng Tin cậy của Việt Nam
+
+Với một đội ngũ kết hợp kinh nghiệm sâu sắc trong việc xây dựng công nghệ cấp doanh nghiệp và mở rộng quy mô hoạt động dẫn đầu thị trường, chúng tôi có vị trí độc nhất để thực hiện tầm nhìn này. Chúng tôi không chỉ xây dựng một ứng dụng; chúng tôi đang xây dựng cơ sở hạ tầng tin cậy kỹ thuật số cho thế hệ tiếp theo của xã hội Việt Nam. Yêu cầu của chúng tôi rất đơn giản: một chương trình thí điểm trong hệ sinh thái Sovico để chứng minh rằng sự an toàn, minh bạch và tin cậy là những động lực mạnh mẽ và chưa được khai thác nhất của sự tăng trưởng và lòng trung thành trong nền kinh tế hiện đại.
+
+---
+
+## Locuno: Engineering Trust for Vietnam's Families and Communities
+
+In the heart of modern Vietnam, a fundamental human need persists, often unmet by digital solutions: the need for trust. This trust deficit manifests in two distinct yet deeply connected spheres of daily life. For families, it is the quiet, constant worry for the safety of children and elderly parents. For communities, it is the corrosive suspicion that surrounds the management of shared funds. Locuno emerges from this gap, not merely as an application, but as a foundational trust infrastructure designed to bring peace of mind to families and radical transparency to community finances.
+
+### The Dual Problem of Trust
+
+The first challenge is intimate and personal. Every parent who has wondered if their child arrived safely at school, or every adult child concerned for their parents' well-being in a distant hometown, understands this anxiety. It stems from a lack of a private, secure, and reliable way to stay connected.
+
+The second challenge is communal. In countless apartment buildings, school parent associations, and neighborhood groups, the management of collective funds is a source of friction. Handled manually through Zalo messages and Excel spreadsheets, these processes are opaque, inefficient, and ripe for mismanagement, breeding distrust and undermining community cohesion. At their core, both problems share a single root: the absence of a digital platform engineered specifically to build and maintain trust.
+
+### A Unified Platform for Peace of Mind and Transparency
+
+Locuno addresses this dual challenge with a single, elegant platform that offers two tailored experiences: **Locuno Family** and **Locuno Community**.
+
+**Locuno Family** is the answer to the question, "Are my loved ones okay?" It provides a private, consent-based digital circle where family members can share location and key wellness indicators, such as sleep patterns and physical activity. This isn't about surveillance; it's about shared awareness and mutual care. The experience is elevated by an emergency SOS feature, a digital panic button that leverages the power of community by instantly alerting a network of eKYC-verified neighbors, ensuring that help is never more than a few minutes away.
+
+**Locuno Community** tackles financial opacity head-on with the Community Wallet. This feature introduces a new paradigm for managing shared funds, built on a principle of democratic oversight. Every expenditure must undergo a "2/3 Approval" vote from the members. A transaction is only executed when this majority is reached, and the entire process—from request to approval to payment—is immutably recorded on a real-time, shared ledger. This "Business Logic Blockchain" delivers the transparency and integrity of distributed ledger technology without the associated complexity or cost, making every dollar fully accountable to every member.
+
+### Bridging Worlds with Smart Rewards: The Safe Deals 1K Engine
+
+Locuno seamlessly connects these two experiences through **Safe Deals 1K**, an exclusive rewards engine that transforms positive actions into tangible value. By engaging in healthy habits or participating responsibly in their communities, users earn access to exclusive deals and auctions for high-value inventory from the Sovico ecosystem, such as Vietjet flights or resort stays. This gamified incentive layer does more than just reward users; it creates a virtuous cycle where living well and acting with integrity are directly linked to economic benefits, reinforcing the platform's core values.
+
+### A Catalyst for Ecosystem Synergy
+
+Locuno is designed not as a standalone product, but as a loyalty operating system for the entire Sovico ecosystem. For HDBank, it drives transactions, increases CASA deposits, and opens a powerful B2B2C channel into schools and residential communities. For Vietjet and Sovico's tourism arms, it provides a hyper-efficient channel to optimize yield on unsold inventory by targeting a high-intent family demographic. For retail partners, it's a direct line to engaged consumers. This symbiotic relationship creates a powerful network effect, where each part of the ecosystem strengthens the others, with Locuno as the central hub of trust and engagement.
+
+### The Vision: Building Vietnam's Trust Infrastructure
+
+With a team that combines deep experience in building enterprise-grade technology and scaling market-leading operations, we are uniquely positioned to execute this vision. We are not just building an app; we are building the digital trust infrastructure for the next generation of Vietnamese society. Our ask is simple: a pilot program within the Sovico ecosystem to demonstrate that safety, transparency, and trust are the most potent and untapped drivers of growth and loyalty in the modern economy.
+
+
+Join us at: https://locuno.com 

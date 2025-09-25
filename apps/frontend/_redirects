@@ -1,5 +1,5 @@
 # Redirects for Cloudflare Pages
-# Handle client-side routing for SPA
+# Handle client-side routing for SPA (Vite + React Router)
 
 # API proxy to Cloudflare Workers
 /api/* https://hdbank-backend.your-subdomain.workers.dev/api/:splat 200
@@ -8,5 +8,5 @@
 http://hdbank.pages.dev/* https://hdbank.pages.dev/:splat 301!
 http://www.hdbank.pages.dev/* https://hdbank.pages.dev/:splat 301!
 
-# Handle SPA routing - must be last
+# Handle SPA routing - must be last (React Router)
 /* /index.html 200
