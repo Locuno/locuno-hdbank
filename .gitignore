@@ -21,3 +21,4 @@ sketch
 *tmp*
 *dist*
 *.wrangler*
+.env
