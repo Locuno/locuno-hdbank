@@ -15,8 +15,6 @@ This is a monorepo containing:
 
 - **Frontend**: Next.js application with static export
 - **Backend**: Node.js/Express API server
-- **Shared Packages**: Common utilities and types
-- **Documentation**: Comprehensive guides and API docs
 
 ## 🚀 Quick Start
 
@@ -24,7 +22,6 @@ This is a monorepo containing:
 
 - Node.js >= 18.0.0
 - pnpm >= 8.0.0
-
 
 
 ## 📁 Project Structure
@@ -43,23 +40,6 @@ locuno-hdbank/
 ├── config/                # Environment configurations
 └── deployment.md          # Deployment guide
 ```
-
-
-
-### Environment Setup
-
-1. Copy environment files:
-```
-cp apps/frontend/.env.example apps/frontend/.env.local
-   cp apps/backend/.env.example apps/backend/.env
-```
-
-## 📚 Documentation
-
-- [API Documentation](./docs/api/README.md)
-- [Frontend Guide](./docs/frontend/README.md)
-- [Backend Guide](./docs/backend/README.md)
-- [Deployment Guide](./deployment.md)
 
 ## 🔒 Security
 
