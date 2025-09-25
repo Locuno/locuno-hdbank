@@ -1,14 +1,14 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Home,
-  CreditCard,
-  ArrowLeftRight,
+  Heart,
+  Users,
+  Gift,
   User,
   Menu,
   X
 } from 'lucide-react';
-import { useState } from 'react';
 
 interface LayoutProps {
   children: ReactNode;
@@ -17,12 +17,12 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
   const navigation = [
-    { name: 'Home', href: '/', icon: Home },
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Accounts', href: '/accounts', icon: CreditCard },
-    { name: 'Transactions', href: '/transactions', icon: ArrowLeftRight },
+    { name: 'Trang chủ', href: '/', icon: Home },
+    { name: 'Gia đình', href: '/family', icon: Heart },
+    { name: 'Cộng đồng', href: '/community', icon: Users },
+    { name: 'Phần thưởng', href: '/rewards', icon: Gift },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -36,10 +36,10 @@ export function Layout({ children }: LayoutProps) {
             {/* Logo */}
             <div className="flex items-center">
               <Link to="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">HD</span>
+                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">L</span>
                 </div>
-                <span className="text-xl font-bold text-gray-900">HD Bank</span>
+                <span className="text-xl font-bold text-gray-900">Locuno</span>
               </Link>
             </div>
 
@@ -67,11 +67,11 @@ export function Layout({ children }: LayoutProps) {
             {/* User Menu */}
             <div className="flex items-center space-x-4">
               <Link
-                to="/login"
+                to="/profile"
                 className="flex items-center space-x-1 text-gray-600 hover:text-gray-900"
               >
                 <User className="w-4 h-4" />
-                <span className="hidden sm:inline">Account</span>
+                <span className="hidden sm:inline">Hồ sơ</span>
               </Link>
               
               {/* Mobile menu button */}
@@ -126,15 +126,15 @@ export function Layout({ children }: LayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <div className="w-6 h-6 bg-primary-600 rounded flex items-center justify-center">
-                <span className="text-white font-bold text-xs">HD</span>
+              <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
+                <span className="text-white font-bold text-xs">L</span>
               </div>
-              <span className="text-gray-600">© 2024 HD Bank. All rights reserved.</span>
+              <span className="text-gray-600">© 2024 Locuno. Được phát triển bởi Sovico Group.</span>
             </div>
             <div className="flex space-x-6 text-sm text-gray-600">
-              <a href="#" className="hover:text-gray-900">Privacy Policy</a>
-              <a href="#" className="hover:text-gray-900">Terms of Service</a>
-              <a href="#" className="hover:text-gray-900">Support</a>
+              <Link to="/privacy" className="hover:text-gray-900">Chính sách bảo mật</Link>
+              <Link to="/terms" className="hover:text-gray-900">Điều khoản sử dụng</Link>
+              <Link to="/support" className="hover:text-gray-900">Hỗ trợ</Link>
             </div>
           </div>
         </div>

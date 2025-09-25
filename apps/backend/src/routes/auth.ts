@@ -43,7 +43,7 @@ auth.post('/register', zValidator('json', RegisterRequestSchema), async (c) => {
     const doStub = c.env.USER_PROFILE_DO.get(doId);
     
     // Create user via Durable Object
-    const response = await doStub.fetch('http://do/create-user', {
+    const response = await doStub.fetch('http://do/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userData),

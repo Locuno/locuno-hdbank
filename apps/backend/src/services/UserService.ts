@@ -23,7 +23,7 @@ export class UserService {
     error?: string;
   }> {
     try {
-      const response = await this.userProfileDO.fetch('http://do/create-user', {
+      const response = await this.userProfileDO.fetch('http://do/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData),
@@ -67,10 +67,9 @@ export class UserService {
     error?: string;
   }> {
     try {
-      const response = await this.userProfileDO.fetch('http://do/get-profile', {
-        method: 'POST',
+      const response = await this.userProfileDO.fetch(`http://do/profile?email=${encodeURIComponent(email)}`, {
+        method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
       });
 
       return await response.json();
@@ -93,8 +92,8 @@ export class UserService {
     error?: string;
   }> {
     try {
-      const response = await this.userProfileDO.fetch('http://do/update-profile', {
-        method: 'POST',
+      const response = await this.userProfileDO.fetch('http://do/profile', {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, updates }),
       });
@@ -221,10 +220,9 @@ export class UserService {
     error?: string;
   }> {
     try {
-      const response = await this.userProfileDO.fetch('http://do/delete-user', {
-        method: 'POST',
+      const response = await this.userProfileDO.fetch(`http://do/user?email=${encodeURIComponent(email)}`, {
+        method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
       });
 
       return await response.json();
