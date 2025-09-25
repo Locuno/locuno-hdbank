@@ -32,7 +32,7 @@ health.get('/detailed', async (c) => {
   try {
     // Cache check (KV storage)
     if (c.env?.CACHE) {
-      await c.env.CACHE.get('health-check');
+      await (c.env.CACHE as any).get('health-check');
       checks.cache = 'healthy';
     }
   } catch (error) {

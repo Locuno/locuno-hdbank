@@ -1,11 +1,10 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  Home, 
-  CreditCard, 
-  ArrowLeftRight, 
-  User, 
-  LogOut,
+import {
+  Home,
+  CreditCard,
+  ArrowLeftRight,
+  User,
   Menu,
   X
 } from 'lucide-react';
