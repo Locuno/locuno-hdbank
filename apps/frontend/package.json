@@ -2,33 +2,39 @@
   "name": "@locuno-hdbank/frontend",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "clean": "rm -rf .next out",
-    "export": "next build && next export"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "clean": "rm -rf dist node_modules/.vite"
   },
   "dependencies": {
-    "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "@tanstack/react-router": "^1.0.0",
+    "react-router-dom": "^6.20.0",
     "axios": "catalog:",
-    "tailwindcss": "catalog:",
-    "autoprefixer": "^10.4.0",
-    "postcss": "^8.4.0",
     "zod": "catalog:",
     "@locuno-hdbank/shared": "workspace:*",
-    "@locuno-hdbank/ui": "workspace:*"
+    "@locuno-hdbank/ui": "workspace:*",
+    "clsx": "^2.0.0",
+    "lucide-react": "^0.294.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
+    "@vitejs/plugin-react": "^4.2.0",
     "typescript": "catalog:",
+    "vite": "^5.0.0",
     "eslint": "^8.0.0",
-    "eslint-config-next": "^14.0.0"
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.5",
+    "tailwindcss": "catalog:",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0"
   }
 }

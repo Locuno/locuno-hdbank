@@ -2,7 +2,6 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { secureHeaders } from 'hono/secure-headers';
-import { rateLimiter } from 'hono/rate-limiter';
 import { config } from './config';
 import { errorHandler } from './middleware/errorHandler';
 import { authRoutes } from './routes/auth';
@@ -33,13 +32,6 @@ app.use('*', cors({
 
 // Logging middleware
 app.use('*', logger());
-
-// Rate limiting middleware
-app.use('*', rateLimiter({
-  windowMs: config.rateLimit.windowMs,
-  limit: config.rateLimit.maxRequests,
-  message: 'Too many requests from this IP, please try again later.',
-}));
 
 // API routes
 app.route('/api/health', healthRoutes);
