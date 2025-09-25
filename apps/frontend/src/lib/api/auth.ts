@@ -1,5 +1,17 @@
 import { api } from './index';
-import { LoginRequest, ApiResponse } from '@locuno-hdbank/shared';
+
+// Define types locally since shared package may not be available
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface ApiResponse<T = any> {
+  success: boolean;
+  message?: string;
+  data?: T;
+  errors?: string[];
+}
 
 // Types for Locuno authentication
 export interface RegisterRequest {

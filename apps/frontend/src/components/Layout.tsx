@@ -1,5 +1,6 @@
 import { ReactNode, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Home,
   Heart,
@@ -7,7 +8,8 @@ import {
   Gift,
   User,
   Menu,
-  X
+  X,
+  LogOut
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -16,7 +18,12 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated, user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Don't show navigation on auth pages
+  const isAuthPage = ['/login', '/register'].includes(location.pathname);
 
   const navigation = [
     { name: 'Trang chủ', href: '/', icon: Home },
@@ -26,6 +33,16 @@ export function Layout({ children }: LayoutProps) {
   ];
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
+
+  // For auth pages, render without navigation
+  if (isAuthPage) {
+    return <div className="min-h-screen">{children}</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -43,37 +60,67 @@ export function Layout({ children }: LayoutProps) {
               </Link>
             </div>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex space-x-8">
-              {navigation.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      isActive(item.href)
-                        ? 'text-primary-600 bg-primary-50'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              })}
-            </nav>
+            {/* Desktop Navigation - Only show if authenticated */}
+            {isAuthenticated && (
+              <nav className="hidden md:flex space-x-8">
+                {navigation.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActive(item.href)
+                          ? 'text-blue-600 bg-blue-50'
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span>{item.name}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            )}
 
             {/* User Menu */}
             <div className="flex items-center space-x-4">
-              <Link
-                to="/profile"
-                className="flex items-center space-x-1 text-gray-600 hover:text-gray-900"
-              >
-                <User className="w-4 h-4" />
-                <span className="hidden sm:inline">Hồ sơ</span>
-              </Link>
-              
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    to="/profile"
+                    className="flex items-center space-x-1 text-gray-600 hover:text-gray-900"
+                  >
+                    <User className="w-4 h-4" />
+                    <span className="hidden sm:inline">
+                      {user?.firstName} {user?.lastName}
+                    </span>
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center space-x-1 text-gray-600 hover:text-red-600 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span className="hidden sm:inline">Đăng xuất</span>
+                  </button>
+                </>
+              ) : (
+                <div className="flex items-center space-x-4">
+                  <Link
+                    to="/login"
+                    className="text-gray-600 hover:text-gray-900 font-medium"
+                  >
+                    Đăng nhập
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    Đăng ký
+                  </Link>
+                </div>
+              )}
+
               {/* Mobile menu button */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
