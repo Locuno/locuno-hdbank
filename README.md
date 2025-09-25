@@ -2,6 +2,11 @@
 
 A modern, secure, and scalable digital banking platform built with cutting-edge technologies.
 
+## Demo: 
+
+- https://galaxy.locuno.com
+- user: `test@locuno.com` / password: `testpassword123`
+
 *(Scroll to bottom for English version)*
 
 ## 🏗️ Architecture
@@ -20,22 +25,7 @@ This is a monorepo containing:
 - Node.js >= 18.0.0
 - pnpm >= 8.0.0
 
-### Installation
 
-```bash
-# Clone the repository
-git clone [<repository-url>](https://github.com/Locuno/locuno-hdbank)
-cd locuno-hdbank
-
-# Install dependencies
-pnpm install
-
-# Setup development environment
-pnpm run setup
-
-# Start development servers
-pnpm run dev
-```
 
 ## 📁 Project Structure
 
@@ -54,15 +44,7 @@ locuno-hdbank/
 └── deployment.md          # Deployment guide
 ```
 
-## 🛠️ Development
 
-### Available Scripts
-
-- `pnpm run dev` - Start all development servers
-- `pnpm run build` - Build all applications
-- `pnpm run test` - Run all tests
-- `pnpm run lint` - Lint all code
-- `pnpm run clean` - Clean all build artifacts
 
 ### Environment Setup
 
@@ -71,14 +53,6 @@ locuno-hdbank/
 cp apps/frontend/.env.example apps/frontend/.env.local
    cp apps/backend/.env.example apps/backend/.env
 ```
-
-2. Configure your environment variables
-3. Run database migrations: `pnpm run db:migrate`
-4. Seed the database: `pnpm run db:seed`
-
-## 🚢 Deployment
-
-See [deployment.md](./deployment.md) for detailed deployment instructions.
 
 ## 📚 Documentation
 
@@ -91,13 +65,10 @@ See [deployment.md](./deployment.md) for detailed deployment instructions.
 
 This application handles sensitive financial data. Please review our security guidelines in [docs/security/README.md](./docs/security/README.md).
 
-## 🤝 Contributing
-
-Please read our contributing guidelines in [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## 📄 License
 
-This project is proprietary software owned by HD Bank.
+This project is proprietary software owned by Locuno.
 
 ## Locuno: Kiến tạo Niềm tin cho Gia đình và Cộng đồng Việt Nam
 
