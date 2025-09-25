@@ -1,0 +1,12 @@
+# Redirects for Cloudflare Pages
+# Handle client-side routing for SPA
+
+# API proxy to Cloudflare Workers
+/api/* https://hdbank-backend.your-subdomain.workers.dev/api/:splat 200
+
+# Redirect HTTP to HTTPS
+http://hdbank.pages.dev/* https://hdbank.pages.dev/:splat 301!
+http://www.hdbank.pages.dev/* https://hdbank.pages.dev/:splat 301!
+
+# Handle SPA routing - must be last
+/* /index.html 200

@@ -104,65 +104,49 @@ else
     warning "DATABASE_URL not set, skipping database backup"
 fi
 
-# Deploy frontend
-log "Deploying frontend..."
+# Deploy frontend to Cloudflare Pages
+log "Deploying frontend to Cloudflare Pages..."
 cd apps/frontend
 
-# Check if AWS CLI is available for S3 deployment
-if command -v aws &> /dev/null && [ -n "$S3_BUCKET" ]; then
-    log "Deploying to S3 bucket: $S3_BUCKET"
-    if aws s3 sync out/ "s3://$S3_BUCKET" --delete; then
-        success "Frontend deployed to S3"
-        
-        # Invalidate CloudFront cache if distribution ID is set
-        if [ -n "$CLOUDFRONT_DISTRIBUTION_ID" ]; then
-            log "Invalidating CloudFront cache..."
-            aws cloudfront create-invalidation --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" --paths "/*"
-            success "CloudFront cache invalidated"
-        fi
+# Check if Wrangler CLI is available
+if command -v wrangler &> /dev/null; then
+    log "Deploying to Cloudflare Pages: $CF_PAGES_PROJECT_NAME"
+    if wrangler pages deploy out --project-name "${CF_PAGES_PROJECT_NAME:-hdbank-frontend}" --compatibility-date=2024-01-15; then
+        success "Frontend deployed to Cloudflare Pages"
     else
-        error "Frontend deployment to S3 failed"
+        error "Frontend deployment to Cloudflare Pages failed"
     fi
 else
-    warning "AWS CLI not available or S3_BUCKET not set, skipping S3 deployment"
+    error "Wrangler CLI not available. Please install with: npm install -g wrangler"
 fi
 
 cd ../..
 
-# Deploy backend
-log "Deploying backend..."
+# Deploy backend to Cloudflare Workers
+log "Deploying backend to Cloudflare Workers..."
 cd apps/backend
 
-# Docker deployment
-if command -v docker &> /dev/null; then
-    log "Building Docker image..."
-    if docker build -t hdbank-backend:latest .; then
-        success "Docker image built successfully"
-        
-        # Tag and push to registry if ECR_REPOSITORY is set
-        if [ -n "$ECR_REPOSITORY" ]; then
-            log "Pushing to ECR repository: $ECR_REPOSITORY"
-            docker tag hdbank-backend:latest "$ECR_REPOSITORY:latest"
-            docker tag hdbank-backend:latest "$ECR_REPOSITORY:$(date +%Y%m%d_%H%M%S)"
-            
-            if docker push "$ECR_REPOSITORY:latest" && docker push "$ECR_REPOSITORY:$(date +%Y%m%d_%H%M%S)"; then
-                success "Docker image pushed to ECR"
-                
-                # Update ECS service if configured
-                if [ -n "$ECS_CLUSTER" ] && [ -n "$ECS_SERVICE" ]; then
-                    log "Updating ECS service..."
-                    aws ecs update-service --cluster "$ECS_CLUSTER" --service "$ECS_SERVICE" --force-new-deployment
-                    success "ECS service updated"
-                fi
-            else
-                error "Failed to push Docker image to ECR"
-            fi
-        fi
+# Check if Wrangler CLI is available
+if command -v wrangler &> /dev/null; then
+    log "Deploying to Cloudflare Workers..."
+
+    # Set secrets if they exist as environment variables
+    if [ -n "$JWT_SECRET" ]; then
+        echo "$JWT_SECRET" | wrangler secret put JWT_SECRET --env production
+    fi
+
+    if [ -n "$DATABASE_URL" ]; then
+        echo "$DATABASE_URL" | wrangler secret put DATABASE_URL --env production
+    fi
+
+    # Deploy the worker
+    if wrangler deploy --env production; then
+        success "Backend deployed to Cloudflare Workers"
     else
-        error "Docker image build failed"
+        error "Backend deployment to Cloudflare Workers failed"
     fi
 else
-    warning "Docker not available, skipping containerized deployment"
+    error "Wrangler CLI not available. Please install with: npm install -g wrangler"
 fi
 
 cd ../..
@@ -181,18 +165,18 @@ cd ../..
 log "Performing health checks..."
 sleep 10  # Wait for services to start
 
-# Check backend health
-if [ -n "$BACKEND_URL" ]; then
-    if curl -f "$BACKEND_URL/health" > /dev/null 2>&1; then
+# Check backend health (Cloudflare Workers)
+if [ -n "$CF_WORKER_URL" ]; then
+    if curl -f "$CF_WORKER_URL/health" > /dev/null 2>&1; then
         success "Backend health check passed"
     else
         error "Backend health check failed"
     fi
 fi
 
-# Check frontend
-if [ -n "$FRONTEND_URL" ]; then
-    if curl -f "$FRONTEND_URL" > /dev/null 2>&1; then
+# Check frontend (Cloudflare Pages)
+if [ -n "$CF_PAGES_URL" ]; then
+    if curl -f "$CF_PAGES_URL" > /dev/null 2>&1; then
         success "Frontend health check passed"
     else
         error "Frontend health check failed"

@@ -1,24 +1,24 @@
 # Deployment Guide - Locuno HD Bank Platform
 
-This comprehensive guide covers deployment strategies for the HD Bank digital platform across different environments.
+This comprehensive guide covers deployment strategies for the HD Bank digital platform using Cloudflare's edge infrastructure.
 
 ## 🏗️ Architecture Overview
 
 The platform consists of:
-- **Frontend**: Next.js application with static export
-- **Backend**: Node.js/Express API server
-- **Database**: PostgreSQL with Prisma ORM
-- **Cache**: Redis (optional)
-- **Monitoring**: Sentry, New Relic (optional)
+- **Frontend**: Next.js application deployed to Cloudflare Pages
+- **Backend**: Cloudflare Workers with Hono framework
+- **Database**: PostgreSQL with Prisma ORM (via connection pooling)
+- **Cache**: Cloudflare KV Storage
+- **Monitoring**: Cloudflare Analytics, Sentry (optional)
 
 ## 📋 Prerequisites
 
 ### System Requirements
 - Node.js >= 18.0.0
 - pnpm >= 8.0.0
-- PostgreSQL >= 13
-- Redis >= 6.0 (optional)
-- Docker & Docker Compose (for containerized deployment)
+- Wrangler CLI (Cloudflare Workers CLI)
+- PostgreSQL >= 13 (with connection pooling like PgBouncer)
+- Cloudflare account with Pages and Workers enabled
 
 ### Required Environment Variables
 Ensure all environment variables are configured for each environment:
@@ -120,124 +120,104 @@ JWT_SECRET=<strong-production-secret>
 BCRYPT_ROUNDS=12
 ```
 
-## 🐳 Docker Deployment
+## ☁️ Cloudflare Deployment
 
-### Docker Compose Setup
-```yaml
-# docker-compose.yml
-version: '3.8'
-services:
-  frontend:
-    build:
-      context: .
-      dockerfile: apps/frontend/Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=http://backend:3001
-    depends_on:
-      - backend
+### Prerequisites Setup
+```bash
+# Install Wrangler CLI
+npm install -g wrangler
 
-  backend:
-    build:
-      context: .
-      dockerfile: apps/backend/Dockerfile
-    ports:
-      - "3001:3001"
-    environment:
-      - DATABASE_URL=postgresql://postgres:password@db:5432/hdbank
-      - REDIS_URL=redis://redis:6379
-    depends_on:
-      - db
-      - redis
+# Login to Cloudflare
+wrangler login
 
-  db:
-    image: postgres:15
-    environment:
-      - POSTGRES_DB=hdbank
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-
-volumes:
-  postgres_data:
+# Verify authentication
+wrangler whoami
 ```
 
-### Docker Deployment Commands
+### Frontend Deployment (Cloudflare Pages)
 ```bash
-# Build and start services
-docker-compose up -d
+# Build the frontend
+cd apps/frontend
+pnpm run build
 
-# View logs
-docker-compose logs -f
+# Deploy to Cloudflare Pages
+npx wrangler pages deploy out --project-name hdbank-frontend
 
-# Scale services
-docker-compose up -d --scale backend=3
+# Or connect to Git repository for automatic deployments
+# Go to Cloudflare Dashboard > Pages > Create a project > Connect to Git
+```
 
-# Stop services
-docker-compose down
+### Backend Deployment (Cloudflare Workers)
+```bash
+# Deploy the worker
+cd apps/backend
+wrangler deploy
+
+# View worker logs
+wrangler tail
+
+# Manage secrets
+wrangler secret put JWT_SECRET
+wrangler secret put DATABASE_URL
 ```
 
 ## ☁️ Cloud Deployment Options
 
-### AWS Deployment
+### Cloudflare Configuration
 
-#### Using AWS ECS with Fargate
+#### Environment Variables Setup
 ```bash
-# 1. Build and push Docker images
-docker build -t hdbank-frontend apps/frontend/
-docker build -t hdbank-backend apps/backend/
+# Set production secrets
+wrangler secret put JWT_SECRET --env production
+wrangler secret put DATABASE_URL --env production
+wrangler secret put CORE_BANKING_API_KEY --env production
 
-# 2. Tag and push to ECR
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <account>.dkr.ecr.us-east-1.amazonaws.com
-docker tag hdbank-frontend:latest <account>.dkr.ecr.us-east-1.amazonaws.com/hdbank-frontend:latest
-docker push <account>.dkr.ecr.us-east-1.amazonaws.com/hdbank-frontend:latest
-
-# 3. Deploy using ECS CLI or Terraform
-ecs-cli compose --project-name hdbank service up
+# Set staging secrets
+wrangler secret put JWT_SECRET --env staging
+wrangler secret put DATABASE_URL --env staging
 ```
 
-#### AWS Services Used
-- **ECS Fargate**: Container orchestration
-- **RDS PostgreSQL**: Managed database
-- **ElastiCache Redis**: Managed cache
-- **ALB**: Load balancing
-- **CloudFront**: CDN for frontend
-- **Route 53**: DNS management
-- **ACM**: SSL certificates
+#### Custom Domain Setup
+1. **For Cloudflare Pages**:
+   - Go to Cloudflare Dashboard > Pages > Your Project > Custom domains
+   - Add your domain (e.g., hdbank.com)
+   - Configure DNS records
 
-### Vercel Deployment (Frontend Only)
+2. **For Cloudflare Workers**:
+   - Go to Cloudflare Dashboard > Workers > Your Worker > Triggers
+   - Add custom domain (e.g., api.hdbank.com)
+   - Configure DNS records
+
+#### Database Connection Pooling
+Since Cloudflare Workers have connection limits, use a connection pooler:
 
 ```bash
-# Install Vercel CLI
-npm i -g vercel
+# Example with PgBouncer
+# DATABASE_URL=postgresql://username:password@pgbouncer-host:6543/hdbank_prod?pgbouncer=true
+```
 
-# Deploy frontend
+### Alternative Deployment Options
+
+#### Vercel (Frontend) + Cloudflare Workers (Backend)
+```bash
+# Deploy frontend to Vercel
 cd apps/frontend
-vercel --prod
+npx vercel --prod
 
-# Configure environment variables in Vercel dashboard
-# NEXT_PUBLIC_API_URL=https://your-backend-api.com
+# Deploy backend to Cloudflare Workers
+cd ../backend
+wrangler deploy --env production
 ```
 
-### Railway Deployment
-
+#### Netlify (Frontend) + Cloudflare Workers (Backend)
 ```bash
-# Install Railway CLI
-npm install -g @railway/cli
+# Deploy frontend to Netlify
+cd apps/frontend
+npx netlify deploy --prod --dir=out
 
-# Login and deploy
-railway login
-railway init
-railway up
+# Deploy backend to Cloudflare Workers
+cd ../backend
+wrangler deploy --env production
 ```
 
 ## 🔧 Deployment Scripts

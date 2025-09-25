@@ -48,49 +48,55 @@ fi
 
 success "Pre-deployment checks completed"
 
-# Deploy to staging
+# Deploy to staging environment
 log "Deploying to staging environment..."
 
-# Deploy frontend to staging
+# Deploy frontend to Cloudflare Pages (staging)
 cd apps/frontend
-if [ -n "$STAGING_S3_BUCKET" ]; then
-    log "Deploying frontend to staging S3 bucket: $STAGING_S3_BUCKET"
-    aws s3 sync out/ "s3://$STAGING_S3_BUCKET" --delete
-    
-    if [ -n "$STAGING_CLOUDFRONT_DISTRIBUTION_ID" ]; then
-        aws cloudfront create-invalidation --distribution-id "$STAGING_CLOUDFRONT_DISTRIBUTION_ID" --paths "/*"
-    fi
+if command -v wrangler &> /dev/null; then
+    log "Deploying frontend to Cloudflare Pages staging..."
+    wrangler pages deploy out --project-name "${CF_PAGES_PROJECT_NAME:-hdbank-frontend}" --compatibility-date=2024-01-15
+    success "Frontend deployed to staging"
+else
+    error "Wrangler CLI not available"
 fi
-cd ..
+cd ../..
 
-# Deploy backend to staging
-cd backend
-if [ -n "$STAGING_ECR_REPOSITORY" ]; then
-    log "Building and pushing backend to staging..."
-    docker build -t hdbank-backend-staging:latest .
-    docker tag hdbank-backend-staging:latest "$STAGING_ECR_REPOSITORY:latest"
-    docker push "$STAGING_ECR_REPOSITORY:latest"
-    
-    if [ -n "$STAGING_ECS_CLUSTER" ] && [ -n "$STAGING_ECS_SERVICE" ]; then
-        aws ecs update-service --cluster "$STAGING_ECS_CLUSTER" --service "$STAGING_ECS_SERVICE" --force-new-deployment
+# Deploy backend to Cloudflare Workers (staging)
+cd apps/backend
+if command -v wrangler &> /dev/null; then
+    log "Deploying backend to Cloudflare Workers staging..."
+
+    # Set staging secrets
+    if [ -n "$STAGING_JWT_SECRET" ]; then
+        echo "$STAGING_JWT_SECRET" | wrangler secret put JWT_SECRET --env staging
     fi
+
+    if [ -n "$STAGING_DATABASE_URL" ]; then
+        echo "$STAGING_DATABASE_URL" | wrangler secret put DATABASE_URL --env staging
+    fi
+
+    wrangler deploy --env staging
+    success "Backend deployed to staging"
+else
+    error "Wrangler CLI not available"
 fi
-cd ..
+cd ../..
 
 # Health checks
 log "Performing staging health checks..."
 sleep 15
 
-if [ -n "$STAGING_BACKEND_URL" ]; then
-    if curl -f "$STAGING_BACKEND_URL/health" > /dev/null 2>&1; then
+if [ -n "$STAGING_CF_WORKER_URL" ]; then
+    if curl -f "$STAGING_CF_WORKER_URL/health" > /dev/null 2>&1; then
         success "Staging backend health check passed"
     else
         error "Staging backend health check failed"
     fi
 fi
 
-if [ -n "$STAGING_FRONTEND_URL" ]; then
-    if curl -f "$STAGING_FRONTEND_URL" > /dev/null 2>&1; then
+if [ -n "$STAGING_CF_PAGES_URL" ]; then
+    if curl -f "$STAGING_CF_PAGES_URL" > /dev/null 2>&1; then
         success "Staging frontend health check passed"
     else
         error "Staging frontend health check failed"
@@ -99,5 +105,5 @@ fi
 
 success "🎉 Staging deployment completed successfully!"
 log "Staging URLs:"
-log "- Frontend: $STAGING_FRONTEND_URL"
-log "- Backend: $STAGING_BACKEND_URL"
+log "- Frontend: $STAGING_CF_PAGES_URL"
+log "- Backend: $STAGING_CF_WORKER_URL"

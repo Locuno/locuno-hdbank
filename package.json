@@ -18,7 +18,12 @@
     "deploy:prod": "pnpm run build && ./scripts/deploy-prod.sh",
     "setup": "./scripts/setup.sh",
     "db:migrate": "cd apps/backend && pnpm run db:migrate",
-    "db:seed": "cd apps/backend && pnpm run db:seed"
+    "db:seed": "cd apps/backend && pnpm run db:seed",
+    "cf:login": "wrangler login",
+    "cf:deploy:frontend": "cd apps/frontend && pnpm run build && wrangler pages deploy out",
+    "cf:deploy:backend": "cd apps/backend && wrangler deploy",
+    "cf:deploy:all": "pnpm run cf:deploy:frontend && pnpm run cf:deploy:backend",
+    "cf:tail": "cd apps/backend && wrangler tail"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.0.0",
