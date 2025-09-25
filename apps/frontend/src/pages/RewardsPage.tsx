@@ -15,7 +15,7 @@ import {
   CreditCard,
   Car,
   ShoppingBag,
-  Coffee,
+
   Utensils,
   Building,
   Sparkles,
@@ -513,34 +513,78 @@ export function RewardsPage() {
               <CardTitle>Ưu đãi độc quyền</CardTitle>
               <CardDescription>Chỉ dành cho thành viên Locuno từ hệ sinh thái Sovico</CardDescription>
             </div>
-            <div className="flex space-x-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant={selectedCategory === 'all' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedCategory('all')}
+                className="transition-all duration-200 hover:scale-105"
               >
+                <Star className="w-4 h-4 mr-1" />
                 Tất cả
               </Button>
               <Button
                 variant={selectedCategory === 'flight' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedCategory('flight')}
+                className="transition-all duration-200 hover:scale-105"
               >
-                Bay
+                <Plane className="w-4 h-4 mr-1" />
+                VietJet Air
+              </Button>
+              <Button
+                variant={selectedCategory === 'banking' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedCategory('banking')}
+                className="transition-all duration-200 hover:scale-105"
+              >
+                <CreditCard className="w-4 h-4 mr-1" />
+                HD Bank
               </Button>
               <Button
                 variant={selectedCategory === 'hotel' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedCategory('hotel')}
+                className="transition-all duration-200 hover:scale-105"
               >
-                Nghỉ dưỡng
+                <MapPin className="w-4 h-4 mr-1" />
+                Vinpearl
+              </Button>
+              <Button
+                variant={selectedCategory === 'transport' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedCategory('transport')}
+                className="transition-all duration-200 hover:scale-105"
+              >
+                <Car className="w-4 h-4 mr-1" />
+                VinFast
+              </Button>
+              <Button
+                variant={selectedCategory === 'retail' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedCategory('retail')}
+                className="transition-all duration-200 hover:scale-105"
+              >
+                <ShoppingBag className="w-4 h-4 mr-1" />
+                VinMart
               </Button>
               <Button
                 variant={selectedCategory === 'restaurant' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedCategory('restaurant')}
+                className="transition-all duration-200 hover:scale-105"
               >
+                <Utensils className="w-4 h-4 mr-1" />
                 Ẩm thực
+              </Button>
+              <Button
+                variant={selectedCategory === 'entertainment' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedCategory('entertainment')}
+                className="transition-all duration-200 hover:scale-105"
+              >
+                <Star className="w-4 h-4 mr-1" />
+                Giải trí
               </Button>
             </div>
           </div>

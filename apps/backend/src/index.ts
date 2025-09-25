@@ -13,6 +13,7 @@ import { family } from './routes/family';
 import { wallet } from './routes/wallet';
 import { rewards } from './routes/rewards';
 import { sepayWebhook } from './routes/sepay-webhook';
+import vietqr from './routes/vietqr';
 import { UserProfileDO } from './durable-objects/UserProfileDO';
 import { FamilyDO } from './durable-objects/FamilyDO';
 import { CommunityWalletDO } from './durable-objects/CommunityWalletDO';
@@ -59,6 +60,7 @@ app.route('/api/family', family);
 app.route('/api/wallet', wallet);
 app.route('/api/rewards', rewards);
 app.route('/api/sepay', sepayWebhook);
+app.route('/api/vietqr', vietqr);
 
 // Health check endpoint (for load balancers)
 app.get('/health', (c) => {
