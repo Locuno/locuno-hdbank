@@ -69,8 +69,14 @@ users.get('/me', async (c) => {
 users.put('/me', zValidator('json', UpdateProfileSchema), async (c) => {
   try {
     const payload = c.get('jwtPayload');
-    const updates = c.req.valid('json');
+    const rawUpdates = c.req.valid('json');
     const userService = new UserService(c.env);
+    
+    // Filter out undefined values
+    const updates: { firstName?: string; lastName?: string; phoneNumber?: string } = {};
+    if (rawUpdates.firstName !== undefined) updates.firstName = rawUpdates.firstName;
+    if (rawUpdates.lastName !== undefined) updates.lastName = rawUpdates.lastName;
+    if (rawUpdates.phoneNumber !== undefined) updates.phoneNumber = rawUpdates.phoneNumber;
     
     const result = await userService.updateUserProfile(payload.email, updates);
     
