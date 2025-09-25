@@ -465,10 +465,13 @@ export class UserProfileDO {
         case 'GET /profile': {
           const email = url.searchParams.get('email');
           if (!email) {
-            return Response.json({ error: 'Email parameter required' }, { status: 400 });
+            return Response.json({ success: false, error: 'Email parameter required' }, { status: 400 });
           }
           const profile = await this.getUserProfile(email);
-          return Response.json({ profile });
+          if (!profile) {
+            return Response.json({ success: false, error: 'User not found' }, { status: 404 });
+          }
+          return Response.json({ success: true, user: profile });
         }
 
         case 'PUT /profile': {
