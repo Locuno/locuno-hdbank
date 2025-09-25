@@ -1,5 +1,46 @@
 import { z } from 'zod';
 
+// Credit Score Schema
+const CreditScoreSchema = z.object({
+  value: z.number().min(0).max(100),
+  reasons: z.array(z.string()),
+  updatedAt: z.string(),
+  factors: z.object({
+    depositFrequency: z.number(), // 0-100
+    averageAmount: z.number(), // 0-100
+    balanceGrowth: z.number(), // 0-100
+    memberParticipation: z.number(), // 0-100
+    recency: z.number(), // 0-100
+  }),
+});
+
+// Loan Schema
+const LoanSchema = z.object({
+  principal: z.number().default(0),
+  outstanding: z.number().default(0),
+  interestRate: z.number().default(0.01), // 1% monthly
+  nextDueDate: z.string().optional(),
+  schedule: z.array(z.object({
+    dueDate: z.string(),
+    amount: z.number(),
+    paid: z.boolean().default(false),
+  })).default([]),
+  status: z.enum(['none', 'approved', 'disbursed', 'active', 'completed', 'defaulted']).default('none'),
+  appliedAt: z.string().optional(),
+  approvedAt: z.string().optional(),
+  disbursedAt: z.string().optional(),
+});
+
+// Repayment Schema
+const RepaymentSchema = z.object({
+  id: z.string(),
+  amount: z.number(),
+  paidAt: z.string(),
+  transactionId: z.string(),
+  principalReduction: z.number(),
+  interestPayment: z.number(),
+});
+
 // Community Wallet Schema
 const CommunityWalletSchema = z.object({
   id: z.string(),
@@ -17,6 +58,9 @@ const CommunityWalletSchema = z.object({
     autoApproveBelow: z.number().default(0),
   }),
   status: z.enum(['active', 'suspended', 'closed']).default('active'),
+  creditScore: CreditScoreSchema.optional(),
+  loan: LoanSchema.optional(),
+  repayments: z.array(RepaymentSchema).default([]),
 });
 
 // Wallet Member Schema
@@ -146,6 +190,7 @@ export class CommunityWalletDO {
           ...data.settings,
         },
         status: 'active',
+        repayments: [],
       };
 
       await this.storage.put(`wallet:${walletId}`, wallet);
@@ -825,6 +870,339 @@ export class CommunityWalletDO {
     }
   }
 
+  // Credit Score Methods
+  async computeScore(): Promise<{ value: number; reasons: string[]; factors: any }> {
+    try {
+      // Get wallet details
+      const walletList = await this.storage.list({ prefix: 'wallet:' });
+      let wallet: CommunityWallet | null = null;
+      let walletId = '';
+      
+      for (const [key, w] of walletList) {
+        wallet = w;
+        walletId = w.id;
+        break; // Get the first (and should be only) wallet
+      }
+      
+      if (!wallet) throw new Error('Wallet not found');
+
+      const transactions = await this.getWalletTransactions(walletId, 100);
+      const transactionRecords = transactions.success ? transactions.transactions || [] : [];
+      
+      const now = new Date();
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      // Filter transactions from last 30 days
+      const recentTransactions = transactionRecords.filter(t => 
+        new Date(t.executedAt) >= thirtyDaysAgo
+      );
+
+      // Factor 1: Deposit Frequency (0-100)
+      const depositCount = recentTransactions.filter(t => t.type === 'deposit' || t.type === 'income').length;
+      const depositFrequency = Math.min(100, (depositCount / 10) * 100); // 10+ deposits = 100
+
+      // Factor 2: Average Deposit Amount (0-100)
+      const deposits = recentTransactions.filter(t => t.type === 'deposit' || t.type === 'income');
+      const avgAmount = deposits.length > 0 ? deposits.reduce((sum, t) => sum + t.amount, 0) / deposits.length : 0;
+      const averageAmount = Math.min(100, (avgAmount / 1000000) * 100); // 1M VND = 100
+
+      // Factor 3: Balance Growth vs Volatility (0-100)
+      const initialBalance = wallet.balance - recentTransactions.reduce((sum, t) => {
+        return sum + (t.type === 'deposit' || t.type === 'income' ? t.amount : -t.amount);
+      }, 0);
+      const growth = wallet.balance > initialBalance ? ((wallet.balance - initialBalance) / Math.max(initialBalance, 1)) * 100 : 0;
+      const balanceGrowth = Math.min(100, Math.max(0, growth));
+
+      // Factor 4: Member Participation (0-100)
+      const uniqueMembers = new Set(recentTransactions.map(t => t.executedBy)).size;
+      const membersResult = await this.getWalletMembers(walletId);
+      const totalMembers = membersResult.success ? (membersResult.members?.length || 1) : 1;
+      const memberParticipation = Math.min(100, (uniqueMembers / totalMembers) * 100);
+
+      // Factor 5: Recency of Last Deposit (0-100)
+      const lastDeposit = deposits.sort((a, b) => new Date(b.executedAt).getTime() - new Date(a.executedAt).getTime())[0];
+      const daysSinceLastDeposit = lastDeposit ? (now.getTime() - new Date(lastDeposit.executedAt).getTime()) / (24 * 60 * 60 * 1000) : 30;
+      const recency = Math.max(0, 100 - (daysSinceLastDeposit * 3.33)); // 30 days = 0, 0 days = 100
+
+      // Calculate weighted score
+      const factors = {
+        depositFrequency,
+        averageAmount,
+        balanceGrowth,
+        memberParticipation,
+        recency
+      };
+
+      const score = Math.round(
+        (depositFrequency * 0.25) +
+        (averageAmount * 0.2) +
+        (balanceGrowth * 0.2) +
+        (memberParticipation * 0.2) +
+        (recency * 0.15)
+      );
+
+      // Generate reasons
+      const reasons = [];
+      if (depositFrequency >= 80) reasons.push('Excellent deposit frequency');
+      else if (depositFrequency >= 60) reasons.push('Good deposit frequency');
+      else reasons.push('Improve deposit consistency');
+
+      if (averageAmount >= 70) reasons.push('Strong average deposit amounts');
+      else reasons.push('Consider larger deposit amounts');
+
+      if (balanceGrowth >= 60) reasons.push('Positive balance growth trend');
+      else reasons.push('Focus on growing wallet balance');
+
+      if (memberParticipation >= 70) reasons.push('High member engagement');
+      else reasons.push('Encourage more member participation');
+
+      if (recency >= 80) reasons.push('Recent deposit activity');
+      else reasons.push('Make deposits more regularly');
+
+      // Store the score
+      const creditScore = {
+        value: score,
+        reasons,
+        updatedAt: now.toISOString(),
+        factors
+      };
+
+      wallet.creditScore = creditScore;
+      wallet.updatedAt = now.toISOString();
+      await this.storage.put(`wallet:${walletId}`, wallet);
+
+      return creditScore;
+    } catch (error) {
+      console.error('Error computing credit score:', error);
+      throw error;
+    }
+  }
+
+  async getScore(): Promise<any> {
+    try {
+      const walletList = await this.storage.list({ prefix: 'wallet:' });
+      let wallet: CommunityWallet | null = null;
+      
+      for (const [key, w] of walletList) {
+        wallet = w;
+        break;
+      }
+      
+      return wallet?.creditScore || null;
+    } catch (error) {
+      console.error('Error getting credit score:', error);
+      return null;
+    }
+  }
+
+  // Loan Methods
+  async applyForLoan(amount: number, term: number): Promise<{ approved: boolean; creditLineId?: string; limit?: number; reasons: string[] }> {
+    try {
+      const walletList = await this.storage.list({ prefix: 'wallet:' });
+      let wallet: CommunityWallet | null = null;
+      let walletId = '';
+      
+      for (const [key, w] of walletList) {
+        wallet = w;
+        walletId = w.id;
+        break;
+      }
+      
+      if (!wallet) throw new Error('Wallet not found');
+
+      // Ensure we have a current score
+      let score = wallet.creditScore;
+      if (!score || new Date().getTime() - new Date(score.updatedAt).getTime() > 24 * 60 * 60 * 1000) {
+        score = await this.computeScore();
+      }
+
+      if (!score) {
+        throw new Error('Unable to compute credit score');
+      }
+
+      const transactions = await this.getWalletTransactions(walletId, 100);
+      const transactionRecords = transactions.success ? transactions.transactions || [] : [];
+      
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const recentDeposits = transactionRecords.filter(t => 
+        (t.type === 'deposit' || t.type === 'income') && new Date(t.executedAt) >= thirtyDaysAgo
+      );
+      const totalRecentDeposits = recentDeposits.reduce((sum, t) => sum + t.amount, 0);
+
+      const reasons: string[] = [];
+      let approved = false;
+      let limit = 0;
+      let creditLineId: string | undefined = undefined;
+
+      // Policy: Score >= 60 and total deposits >= 500,000 VND
+      if (score.value >= 60 && totalRecentDeposits >= 500000) {
+        // Loan cap: up to 30% of recent deposits
+        limit = Math.floor(totalRecentDeposits * 0.3);
+        if (amount <= limit) {
+          approved = true;
+          creditLineId = `loan_${wallet.id}_${Date.now()}`;
+          reasons.push(`Approved: Score ${score.value}/100, Recent deposits ${totalRecentDeposits.toLocaleString()} VND`);
+          
+          // Initialize loan structure
+          const now = new Date();
+          const nextDueDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // Weekly payments
+          
+          wallet.loan = {
+            principal: amount,
+            outstanding: amount,
+            interestRate: 0.01,
+            nextDueDate: nextDueDate.toISOString(),
+            schedule: this.generateLoanSchedule(amount, 0.01, term),
+            status: 'approved',
+            appliedAt: now.toISOString(),
+            approvedAt: now.toISOString(),
+          };
+        } else {
+          reasons.push(`Amount ${amount.toLocaleString()} exceeds limit ${limit.toLocaleString()} VND`);
+        }
+      } else {
+        if (score.value < 60) reasons.push(`Score ${score.value}/100 below minimum 60`);
+        if (totalRecentDeposits < 500000) reasons.push(`Recent deposits ${totalRecentDeposits.toLocaleString()} below minimum 500,000 VND`);
+      }
+
+      wallet.updatedAt = new Date().toISOString();
+      await this.storage.put(`wallet:${walletId}`, wallet);
+
+      return {
+        approved,
+        creditLineId,
+        limit,
+        reasons
+      };
+    } catch (error) {
+      console.error('Error applying for loan:', error);
+      throw error;
+    }
+  }
+
+  private generateLoanSchedule(principal: number, monthlyRate: number, termWeeks: number): any[] {
+    const schedule = [];
+    const weeklyPayment = (principal * (1 + monthlyRate)) / termWeeks;
+    
+    for (let week = 1; week <= termWeeks; week++) {
+      const dueDate = new Date(Date.now() + week * 7 * 24 * 60 * 60 * 1000);
+      schedule.push({
+        dueDate: dueDate.toISOString(),
+        amount: Math.round(weeklyPayment),
+        paid: false
+      });
+    }
+    
+    return schedule;
+  }
+
+  async disburseLoan(): Promise<{ success: boolean; amount: number; newBalance: number }> {
+    try {
+      const walletList = await this.storage.list({ prefix: 'wallet:' });
+      let wallet: CommunityWallet | null = null;
+      let walletId = '';
+      
+      for (const [key, w] of walletList) {
+        wallet = w;
+        walletId = w.id;
+        break;
+      }
+      
+      if (!wallet?.loan || wallet.loan.status !== 'approved') {
+        throw new Error('No approved loan found');
+      }
+
+      // Add loan amount to wallet balance
+      wallet.balance += wallet.loan.principal;
+      wallet.loan.status = 'disbursed';
+      wallet.loan.disbursedAt = new Date().toISOString();
+      wallet.updatedAt = new Date().toISOString();
+
+      await this.storage.put(`wallet:${walletId}`, wallet);
+
+      return {
+        success: true,
+        amount: wallet.loan.principal,
+        newBalance: wallet.balance
+      };
+    } catch (error) {
+      console.error('Error disbursing loan:', error);
+      throw error;
+    }
+  }
+
+  async repayLoan(amount: number, transactionId: string): Promise<{ success: boolean; principalReduction: number; outstanding: number }> {
+    try {
+      const walletList = await this.storage.list({ prefix: 'wallet:' });
+      let wallet: CommunityWallet | null = null;
+      let walletId = '';
+      
+      for (const [key, w] of walletList) {
+        wallet = w;
+        walletId = w.id;
+        break;
+      }
+      
+      if (!wallet?.loan || !['disbursed', 'active'].includes(wallet.loan.status)) {
+        throw new Error('No active loan found');
+      }
+
+      const interestPayment = Math.min(amount, wallet.loan.outstanding * wallet.loan.interestRate);
+      const principalReduction = Math.min(amount - interestPayment, wallet.loan.outstanding);
+      
+      wallet.loan.outstanding -= principalReduction;
+      
+      // Add repayment record
+      const repayment = {
+        id: `repay_${Date.now()}`,
+        amount,
+        paidAt: new Date().toISOString(),
+        transactionId,
+        principalReduction,
+        interestPayment
+      };
+      
+      if (!wallet.repayments) wallet.repayments = [];
+      wallet.repayments.push(repayment);
+
+      // Update loan status
+      if (wallet.loan.outstanding <= 0) {
+        wallet.loan.status = 'completed';
+      } else {
+        wallet.loan.status = 'active';
+      }
+
+      wallet.updatedAt = new Date().toISOString();
+      await this.storage.put(`wallet:${walletId}`, wallet);
+
+      return {
+        success: true,
+        principalReduction,
+        outstanding: wallet.loan.outstanding
+      };
+    } catch (error) {
+      console.error('Error repaying loan:', error);
+      throw error;
+    }
+  }
+
+  async getLoanStatus(): Promise<any> {
+    try {
+      const walletList = await this.storage.list({ prefix: 'wallet:' });
+      let wallet: CommunityWallet | null = null;
+      
+      for (const [key, w] of walletList) {
+        wallet = w;
+        break;
+      }
+      
+      return wallet?.loan || { status: 'none', principal: 0, outstanding: 0 };
+    } catch (error) {
+      console.error('Error getting loan status:', error);
+      return { status: 'none', principal: 0, outstanding: 0 };
+    }
+  }
+
   // Handle HTTP requests to the Durable Object
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
@@ -939,6 +1317,38 @@ export class CommunityWalletDO {
           const data = await request.json() as { amount: number; transactionId: string; description: string; reference: string; };
           const result = await this.updateWalletBalance(data);
           return Response.json(result);
+        }
+
+        case 'POST /compute-score': {
+          const result = await this.computeScore();
+          return Response.json({ success: true, score: result });
+        }
+
+        case 'GET /score': {
+          const result = await this.getScore();
+          return Response.json({ success: true, score: result });
+        }
+
+        case 'POST /apply-loan': {
+          const data = await request.json() as { amount: number; term: number; };
+          const result = await this.applyForLoan(data.amount, data.term);
+          return Response.json({ success: true, ...result });
+        }
+
+        case 'POST /disburse-loan': {
+          const result = await this.disburseLoan();
+          return Response.json(result);
+        }
+
+        case 'POST /repay-loan': {
+          const data = await request.json() as { amount: number; transactionId: string; };
+          const result = await this.repayLoan(data.amount, data.transactionId);
+          return Response.json(result);
+        }
+
+        case 'GET /loan-status': {
+          const result = await this.getLoanStatus();
+          return Response.json({ success: true, loan: result });
         }
 
         default:

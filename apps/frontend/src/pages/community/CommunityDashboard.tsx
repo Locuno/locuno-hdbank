@@ -22,6 +22,8 @@ import { CreateCommunityModal } from '@/components/CreateCommunityModal';
 import { QRCodeModal } from '@/components/QRCodeModal';
 import { CreateProposalModal } from '@/components/CreateProposalModal';
 import { TransactionHistory } from '@/components/TransactionHistory';
+import { CreditScoreCard } from '@/components/CreditScoreCard';
+import { LoanManagementCard } from '@/components/LoanManagementCard';
 import { communityService } from '@/lib/api/community';
 import { proposalsApi } from '@/lib/api/proposals';
 
@@ -474,6 +476,19 @@ export function CommunityDashboard() {
               </div>
             </CardContent>
           </Card>
+        </div>
+      )}
+
+      {/* Credit Score and Loan Management */}
+      {currentGroup && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <CreditScoreCard 
+            communityId={currentGroup.id}
+          />
+          <LoanManagementCard 
+            communityId={currentGroup.id}
+            balance={currentGroup.balance}
+          />
         </div>
       )}
 

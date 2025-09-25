@@ -2,7 +2,7 @@
 
 ## ✅ PHASE 1 COMPLETED - Foundation Setup
 
-**Status**: Successfully deployed to Cloudflare Pages at https://cec21f29.locuno-hdbank-frontend.pages.dev
+**Status**: Successfully deployed to Cloudflare Pages at https://cec21f29.locuno-locuno-hdbank-frontend.pages.dev
 
 ### What was accomplished:
 - ✅ **Core Infrastructure**: Updated routing structure for Locuno modules

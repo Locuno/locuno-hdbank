@@ -141,7 +141,7 @@ cd apps/frontend
 pnpm run build
 
 # Deploy to Cloudflare Pages
-npx wrangler pages deploy out --project-name hdbank-frontend
+npx wrangler pages deploy out --project-name locuno-hdbank-frontend
 
 # Or connect to Git repository for automatic deployments
 # Go to Cloudflare Dashboard > Pages > Create a project > Connect to Git
@@ -268,7 +268,7 @@ pg_dump $DATABASE_URL > "backup_$(date +%Y%m%d_%H%M%S).sql"
 # Deploy frontend to CDN
 echo "Deploying frontend..."
 cd apps/frontend
-aws s3 sync out/ s3://hdbank-frontend-prod --delete
+aws s3 sync out/ s3://locuno-hdbank-frontend-prod --delete
 aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
 
 # Deploy backend
@@ -339,7 +339,7 @@ app.use(helmet({
 aws ecs update-service --cluster hdbank-prod --service hdbank-backend --task-definition hdbank-backend:PREVIOUS_VERSION
 
 # 2. Rollback frontend
-aws s3 sync s3://hdbank-frontend-backup/ s3://hdbank-frontend-prod --delete
+aws s3 sync s3://locuno-hdbank-frontend-backup/ s3://locuno-hdbank-frontend-prod --delete
 aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
 
 # 3. Rollback database (if needed)

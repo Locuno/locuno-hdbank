@@ -37,26 +37,40 @@ interface TransactionLog {
 const processedTransactions = new Map<string, TransactionLog>();
 
 // Helper function to extract wallet ID from transfer content
-function extractWalletInfo(content: string): { type: 'family' | 'community' | null, id: string | null } {
+function extractWalletInfo(content: string): { type: 'family' | 'community' | null, id: string | null, isRepayment: boolean, repaymentAmount?: number } {
+  // Check for REPAY pattern first: "REPAY locuno12345 50000" or "REPAY COMMUNITY_ID 50000"
+  const repayMatch = content.match(/REPAY\s+(?:locuno(\d{5})|((?:COMMUNITY_|COM_|WALLET_|community)([A-Za-z0-9-]+)))(?:\s+(\d+))?/i);
+  if (repayMatch) {
+    const shortId = repayMatch[1];
+    const longId = repayMatch[3];
+    const amount = repayMatch[4] ? parseInt(repayMatch[4]) : undefined;
+    
+    if (shortId) {
+      return { type: 'community', id: `locuno${shortId}`, isRepayment: true, ...(amount !== undefined && { repaymentAmount: amount }) };
+    } else if (longId) {
+      return { type: 'community', id: longId, isRepayment: true, ...(amount !== undefined && { repaymentAmount: amount }) };
+    }
+  }
+
   // Pattern for family wallet: FAMILY_[ID], FAM_[ID], or family[ID]
   const familyMatch = content.match(/(?:FAMILY_|FAM_|family)([A-Za-z0-9-]+)/i);
   if (familyMatch) {
-    return { type: 'family', id: familyMatch[1] || null };
+    return { type: 'family', id: familyMatch[1] || null, isRepayment: false };
   }
 
   // Pattern for community wallet: COMMUNITY_[ID], COM_[ID], WALLET_[ID], or community[ID]
   const communityMatch = content.match(/(?:COMMUNITY_|COM_|WALLET_|community)([A-Za-z0-9-]+)/i);
   if (communityMatch) {
-    return { type: 'community', id: communityMatch[1] || null };
+    return { type: 'community', id: communityMatch[1] || null, isRepayment: false };
   }
 
   // Pattern for new short community ID: locuno[5digits]
   const shortCommunityMatch = content.match(/locuno(\d{5})/i);
   if (shortCommunityMatch) {
-    return { type: 'community', id: shortCommunityMatch[0] || null }; // Return full locuno12345 format
+    return { type: 'community', id: shortCommunityMatch[0] || null, isRepayment: false }; // Return full locuno12345 format
   }
 
-  return { type: null, id: null };
+  return { type: null, id: null, isRepayment: false };
 }
 
 // Helper function to check for duplicate transactions
@@ -163,6 +177,7 @@ sepayWebhook.post('/notify', async (c) => {
     }
 
     let result;
+    let additionalActions: string[] = [];
     
     try {
       if (walletInfo.type === 'family') {
@@ -175,14 +190,66 @@ sepayWebhook.post('/notify', async (c) => {
           reference: webhookData.referenceCode
         });
       } else if (walletInfo.type === 'community') {
-        // Update community wallet balance
-        result = await CommunityWalletService.updateWalletBalance(c.env, {
-          walletId: actualWalletId,
-          amount: webhookData.transferAmount,
-          transactionId: webhookData.id.toString(),
-          description: `SePay deposit: ${webhookData.content}`,
-          reference: webhookData.referenceCode
-        });
+        if (walletInfo.isRepayment) {
+          // Handle loan repayment
+          console.log(`SePay webhook: Processing loan repayment for wallet ${actualWalletId}, amount: ${webhookData.transferAmount}`);
+          
+          try {
+            const repayResult = await CommunityWalletService.repayLoan(c.env, {
+              walletId: actualWalletId,
+              amount: webhookData.transferAmount,
+              transactionId: webhookData.id.toString()
+            });
+            
+            if (repayResult.success) {
+              additionalActions.push(`Loan repayment processed: ${repayResult.principalReduction?.toLocaleString()} VND principal, ${repayResult.outstanding?.toLocaleString()} VND remaining`);
+              console.log(`SePay webhook: Loan repayment successful for wallet ${actualWalletId}`);
+            } else {
+              console.log(`SePay webhook: Loan repayment failed for wallet ${actualWalletId}: ${repayResult.error}`);
+              additionalActions.push(`Loan repayment failed: ${repayResult.error}`);
+            }
+          } catch (repayError) {
+            console.error(`SePay webhook: Error processing loan repayment:`, repayError);
+            additionalActions.push(`Loan repayment error: ${repayError instanceof Error ? repayError.message : 'Unknown error'}`);
+          }
+          
+          // Still update wallet balance for repayment deposits
+          result = await CommunityWalletService.updateWalletBalance(c.env, {
+            walletId: actualWalletId,
+            amount: webhookData.transferAmount,
+            transactionId: webhookData.id.toString(),
+            description: `SePay loan repayment: ${webhookData.content}`,
+            reference: webhookData.referenceCode
+          });
+        } else {
+          // Regular community wallet deposit
+          result = await CommunityWalletService.updateWalletBalance(c.env, {
+            walletId: actualWalletId,
+            amount: webhookData.transferAmount,
+            transactionId: webhookData.id.toString(),
+            description: `SePay deposit: ${webhookData.content}`,
+            reference: webhookData.referenceCode
+          });
+        }
+        
+        // Trigger credit score computation for community wallets after successful deposit
+        if (result && result.success) {
+          try {
+            console.log(`SePay webhook: Triggering credit score computation for wallet ${actualWalletId}`);
+            const scoreResult = await CommunityWalletService.computeScore(c.env, actualWalletId);
+            
+            if (scoreResult.success) {
+              additionalActions.push(`Credit score updated: ${scoreResult.score?.value}/100`);
+              console.log(`SePay webhook: Credit score computed for wallet ${actualWalletId}: ${scoreResult.score?.value}/100`);
+            } else {
+              console.log(`SePay webhook: Credit score computation failed for wallet ${actualWalletId}: ${scoreResult.error}`);
+              additionalActions.push(`Credit score computation failed: ${scoreResult.error}`);
+            }
+          } catch (scoreError) {
+            console.error(`SePay webhook: Error computing credit score:`, scoreError);
+            additionalActions.push(`Credit score computation error: ${scoreError instanceof Error ? scoreError.message : 'Unknown error'}`);
+          }
+        }
       }
 
       if (result && result.success) {
@@ -195,7 +262,9 @@ sepayWebhook.post('/notify', async (c) => {
           success: true, 
           message: `${walletInfo.type} wallet updated successfully`,
           walletId: actualWalletId,
-          amount: webhookData.transferAmount
+          amount: webhookData.transferAmount,
+          isRepayment: walletInfo.isRepayment || false,
+          additionalActions: additionalActions.length > 0 ? additionalActions : undefined
         }, 201);
       } else {
         // Log failed transaction
@@ -206,7 +275,8 @@ sepayWebhook.post('/notify', async (c) => {
         
         return c.json({ 
           success: false, 
-          error: `Failed to update ${walletInfo.type} wallet: ${errorMsg}` 
+          error: `Failed to update ${walletInfo.type} wallet: ${errorMsg}`,
+          additionalActions: additionalActions.length > 0 ? additionalActions : undefined
         }, 500);
       }
     } catch (error) {
@@ -218,7 +288,8 @@ sepayWebhook.post('/notify', async (c) => {
       
       return c.json({ 
         success: false, 
-        error: `Error processing ${walletInfo.type} wallet update: ${errorMsg}` 
+        error: `Error processing ${walletInfo.type} wallet update: ${errorMsg}`,
+        additionalActions: additionalActions.length > 0 ? additionalActions : undefined
       }, 500);
     }
   } catch (error) {

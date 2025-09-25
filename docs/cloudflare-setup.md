@@ -59,7 +59,7 @@ cd apps/frontend
 pnpm run build
 
 # Deploy to Cloudflare Pages
-wrangler pages deploy out --project-name hdbank-frontend
+wrangler pages deploy out --project-name locuno-hdbank-frontend
 ```
 
 ### Method 2: Git Integration (Recommended)
@@ -148,7 +148,7 @@ wrangler tail --env production
 ### Production Environment
 ```bash
 # Environment variables for production
-export CF_PAGES_PROJECT_NAME="hdbank-frontend-prod"
+export CF_PAGES_PROJECT_NAME="locuno-hdbank-frontend-prod"
 export CF_WORKER_URL="https://api.hdbank.com"
 export CF_PAGES_URL="https://hdbank.com"
 ```
@@ -156,7 +156,7 @@ export CF_PAGES_URL="https://hdbank.com"
 ### Staging Environment
 ```bash
 # Environment variables for staging
-export CF_PAGES_PROJECT_NAME="hdbank-frontend-staging"
+export CF_PAGES_PROJECT_NAME="locuno-hdbank-frontend-staging"
 export STAGING_CF_WORKER_URL="https://hdbank-backend-staging.your-subdomain.workers.dev"
 export STAGING_CF_PAGES_URL="https://staging.hdbank.com"
 ```
@@ -234,7 +234,7 @@ wrangler metrics
 wrangler dev --local
 
 # Check Pages deployment
-wrangler pages deployment list --project-name hdbank-frontend
+wrangler pages deployment list --project-name locuno-hdbank-frontend
 ```
 
 ## Performance Optimization
@@ -273,7 +273,7 @@ pg_dump $DATABASE_URL > backup_$(date +%Y%m%d_%H%M%S).sql
 wrangler rollback --env production
 
 # Rollback Pages deployment
-wrangler pages deployment list --project-name hdbank-frontend
+wrangler pages deployment list --project-name locuno-hdbank-frontend
 wrangler pages deployment rollback <deployment-id>
 ```
 

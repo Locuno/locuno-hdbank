@@ -354,4 +354,126 @@ export class CommunityWalletService {
       return null;
     }
   }
+
+  // Credit Score Methods
+  static async computeScore(env: any, walletId: string) {
+    try {
+      const durableObjectId = env.COMMUNITY_WALLET_DO.idFromName(walletId);
+      const durableObject = env.COMMUNITY_WALLET_DO.get(durableObjectId);
+      
+      const response = await durableObject.fetch('http://localhost/compute-score', {
+        method: 'POST',
+      });
+      
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('CommunityWalletService.computeScore error:', error);
+      return { success: false, error: 'Failed to compute credit score' };
+    }
+  }
+
+  static async getScore(env: any, walletId: string) {
+    try {
+      const durableObjectId = env.COMMUNITY_WALLET_DO.idFromName(walletId);
+      const durableObject = env.COMMUNITY_WALLET_DO.get(durableObjectId);
+      
+      const response = await durableObject.fetch('http://localhost/score', {
+        method: 'GET',
+      });
+      
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('CommunityWalletService.getScore error:', error);
+      return { success: false, error: 'Failed to get credit score' };
+    }
+  }
+
+  // Loan Methods
+  static async applyForLoan(env: any, data: {
+    walletId: string;
+    amount: number;
+    term: number;
+  }) {
+    try {
+      const durableObjectId = env.COMMUNITY_WALLET_DO.idFromName(data.walletId);
+      const durableObject = env.COMMUNITY_WALLET_DO.get(durableObjectId);
+      
+      const response = await durableObject.fetch('http://localhost/apply-loan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: data.amount,
+          term: data.term,
+        }),
+      });
+      
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('CommunityWalletService.applyForLoan error:', error);
+      return { success: false, error: 'Failed to apply for loan' };
+    }
+  }
+
+  static async disburseLoan(env: any, walletId: string) {
+    try {
+      const durableObjectId = env.COMMUNITY_WALLET_DO.idFromName(walletId);
+      const durableObject = env.COMMUNITY_WALLET_DO.get(durableObjectId);
+      
+      const response = await durableObject.fetch('http://localhost/disburse-loan', {
+        method: 'POST',
+      });
+      
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('CommunityWalletService.disburseLoan error:', error);
+      return { success: false, error: 'Failed to disburse loan' };
+    }
+  }
+
+  static async repayLoan(env: any, data: {
+    walletId: string;
+    amount: number;
+    transactionId: string;
+  }) {
+    try {
+      const durableObjectId = env.COMMUNITY_WALLET_DO.idFromName(data.walletId);
+      const durableObject = env.COMMUNITY_WALLET_DO.get(durableObjectId);
+      
+      const response = await durableObject.fetch('http://localhost/repay-loan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: data.amount,
+          transactionId: data.transactionId,
+        }),
+      });
+      
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('CommunityWalletService.repayLoan error:', error);
+      return { success: false, error: 'Failed to repay loan' };
+    }
+  }
+
+  static async getLoanStatus(env: any, walletId: string) {
+    try {
+      const durableObjectId = env.COMMUNITY_WALLET_DO.idFromName(walletId);
+      const durableObject = env.COMMUNITY_WALLET_DO.get(durableObjectId);
+      
+      const response = await durableObject.fetch('http://localhost/loan-status', {
+        method: 'GET',
+      });
+      
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('CommunityWalletService.getLoanStatus error:', error);
+      return { success: false, error: 'Failed to get loan status' };
+    }
+  }
 }

@@ -2,7 +2,7 @@
 
 ## 🎉 Phase 1 Complete: Foundation Setup
 
-**Deployment URL**: https://cec21f29.locuno-hdbank-frontend.pages.dev  
+**Deployment URL**: https://cec21f29.locuno-locuno-hdbank-frontend.pages.dev  
 **Backend API**: https://hdbank-backend.4rqnf2gvxf.workers.dev  
 **Completion Date**: September 25, 2025
 
@@ -154,7 +154,7 @@ The Locuno frontend is now ready for:
 - Sovico ecosystem partner integration
 - Vietnamese market deployment
 
-**Live Demo**: https://cec21f29.locuno-hdbank-frontend.pages.dev
+**Live Demo**: https://cec21f29.locuno-locuno-hdbank-frontend.pages.dev
 
 ---
 

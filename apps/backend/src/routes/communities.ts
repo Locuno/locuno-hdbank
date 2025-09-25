@@ -416,4 +416,158 @@ communities.get('/:communityId/transactions/:transactionId', async (c) => {
   }
 });
 
+// Credit Score Endpoints
+
+// Compute and update credit score
+communities.post('/:communityId/credit/score', async (c) => {
+  try {
+    const communityId = c.req.param('communityId');
+    
+    const result = await CommunityWalletService.computeScore(c.env, communityId);
+    
+    if (result.success) {
+      return c.json({
+        success: true,
+        message: 'Credit score computed successfully',
+        data: result.data,
+      });
+    } else {
+      return c.json({ success: false, message: result.error }, 400);
+    }
+  } catch (error) {
+    console.error('Error computing credit score:', error);
+    return c.json({ success: false, message: 'Internal server error' }, 500);
+  }
+});
+
+// Get current credit score
+communities.get('/:communityId/credit/score', async (c) => {
+  try {
+    const communityId = c.req.param('communityId');
+    
+    const result = await CommunityWalletService.getScore(c.env, communityId);
+    
+    if (result.success) {
+      return c.json({
+        success: true,
+        message: 'Credit score retrieved successfully',
+        data: result.data,
+      });
+    } else {
+      return c.json({ success: false, message: result.error }, 404);
+    }
+  } catch (error) {
+    console.error('Error getting credit score:', error);
+    return c.json({ success: false, message: 'Internal server error' }, 500);
+  }
+});
+
+// Loan Management Endpoints
+
+// Apply for loan
+communities.post('/:communityId/loan/apply', async (c) => {
+  try {
+    const communityId = c.req.param('communityId');
+    const { amount, term } = await c.req.json();
+    
+    if (!amount || !term) {
+      return c.json({ success: false, message: 'Amount and term are required' }, 400);
+    }
+    
+    const result = await CommunityWalletService.applyForLoan(c.env, {
+      walletId: communityId,
+      amount,
+      term,
+    });
+    
+    if (result.success) {
+      return c.json({
+        success: true,
+        message: 'Loan application processed successfully',
+        data: result.data,
+      });
+    } else {
+      return c.json({ success: false, message: result.error }, 400);
+    }
+  } catch (error) {
+    console.error('Error applying for loan:', error);
+    return c.json({ success: false, message: 'Internal server error' }, 500);
+  }
+});
+
+// Disburse approved loan
+communities.post('/:communityId/loan/disburse', async (c) => {
+  try {
+    const communityId = c.req.param('communityId');
+    
+    const result = await CommunityWalletService.disburseLoan(c.env, communityId);
+    
+    if (result.success) {
+      return c.json({
+        success: true,
+        message: 'Loan disbursed successfully',
+        data: result.data,
+      });
+    } else {
+      return c.json({ success: false, message: result.error }, 400);
+    }
+  } catch (error) {
+    console.error('Error disbursing loan:', error);
+    return c.json({ success: false, message: 'Internal server error' }, 500);
+  }
+});
+
+// Repay loan
+communities.post('/:communityId/loan/repay', async (c) => {
+  try {
+    const communityId = c.req.param('communityId');
+    const { amount } = await c.req.json();
+    
+    if (!amount) {
+      return c.json({ success: false, message: 'Repayment amount is required' }, 400);
+    }
+    
+    const result = await CommunityWalletService.repayLoan(c.env, {
+      walletId: communityId,
+      amount,
+      transactionId: `repay-${Date.now()}`,
+    });
+    
+    if (result.success) {
+      return c.json({
+        success: true,
+        message: 'Loan repayment processed successfully',
+        data: result.data,
+      });
+    } else {
+      return c.json({ success: false, message: result.error }, 400);
+    }
+  } catch (error) {
+    console.error('Error processing loan repayment:', error);
+    return c.json({ success: false, message: 'Internal server error' }, 500);
+  }
+});
+
+// Get loan status
+communities.get('/:communityId/loan/status', async (c) => {
+  try {
+    const communityId = c.req.param('communityId');
+    
+    const result = await CommunityWalletService.getLoanStatus(c.env, communityId);
+    
+    if (result.success) {
+      return c.json({
+        success: true,
+        message: 'Loan status retrieved successfully',
+        data: result.data,
+      });
+    } else {
+      return c.json({ success: false, message: result.error }, 404);
+    }
+  } catch (error) {
+    console.error('Error getting loan status:', error);
+    return c.json({ success: false, message: 'Internal server error' }, 500);
+  }
+});
+
 export default communities;
