@@ -2,9 +2,11 @@ import { Routes, Route } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { HomePage } from '@/pages/HomePage';
 import { LoginPage } from '@/pages/LoginPage';
-import { DashboardPage } from '@/pages/DashboardPage';
-import { AccountsPage } from '@/pages/AccountsPage';
-import { TransactionsPage } from '@/pages/TransactionsPage';
+import { OnboardingPage } from '@/pages/OnboardingPage';
+import { FamilyDashboard } from '@/pages/family/FamilyDashboard';
+import { CommunityDashboard } from '@/pages/community/CommunityDashboard';
+import { RewardsPage } from '@/pages/RewardsPage';
+import { ProfilePage } from '@/pages/ProfilePage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
 function App() {
@@ -13,9 +15,11 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/accounts" element={<AccountsPage />} />
-        <Route path="/transactions" element={<TransactionsPage />} />
+        <Route path="/onboarding" element={<OnboardingPage />} />
+        <Route path="/family" element={<FamilyDashboard />} />
+        <Route path="/community" element={<CommunityDashboard />} />
+        <Route path="/rewards" element={<RewardsPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Layout>
