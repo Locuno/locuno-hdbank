@@ -2,9 +2,9 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 // API Configuration
 const API_CONFIG = {
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
-  timeout: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '30000'),
-  retryAttempts: parseInt(process.env.NEXT_PUBLIC_API_RETRY_ATTEMPTS || '3'),
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
+  timeout: parseInt(import.meta.env.VITE_API_TIMEOUT || '30000'),
+  retryAttempts: parseInt(import.meta.env.VITE_API_RETRY_ATTEMPTS || '3'),
 };
 
 // Create axios instance
@@ -39,7 +39,7 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
     // Log response time in development
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       const endTime = new Date();
       const startTime = response.config.metadata?.startTime;
       if (startTime) {
