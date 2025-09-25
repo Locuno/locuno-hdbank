@@ -150,6 +150,20 @@ export class CommunityWalletDO {
 
       await this.storage.put(`wallet:${walletId}`, wallet);
 
+      // Register wallet in global registry for getAllWallets functionality
+      try {
+        const globalRegistryId = this.env.COMMUNITY_WALLET_DO.idFromName('global_wallets');
+        const globalRegistry = this.env.COMMUNITY_WALLET_DO.get(globalRegistryId);
+        await globalRegistry.fetch('http://localhost/register-wallet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ walletId, walletData: wallet })
+        });
+      } catch (error) {
+        console.error('Failed to register wallet in global registry:', error);
+        // Continue even if global registry fails
+      }
+
       // Add creator as admin member
       const member: WalletMember = {
         userId: data.createdBy,
@@ -221,6 +235,44 @@ export class CommunityWalletDO {
     } catch (error) {
       console.error('Error getting user wallets:', error);
       return { success: false, error: 'Failed to get user wallets' };
+    }
+  }
+
+  async registerWallet(walletId: string, walletData: CommunityWallet): Promise<{ success: boolean; error?: string }> {
+    try {
+      // Store wallet data in global registry
+      await this.storage.put(`wallet:${walletId}`, walletData);
+      
+      // Also maintain a list of all wallet IDs for quick access
+      const walletIds = await this.storage.get('all_wallet_ids') || [];
+      if (!walletIds.includes(walletId)) {
+        walletIds.push(walletId);
+        await this.storage.put('all_wallet_ids', walletIds);
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error registering wallet:', error);
+      return { success: false, error: 'Failed to register wallet' };
+    }
+  }
+
+  async getAllWallets(): Promise<{ success: boolean; wallets?: CommunityWallet[]; error?: string }> {
+    try {
+      const wallets: CommunityWallet[] = [];
+      const walletKeys = await this.storage.list({ prefix: 'wallet:' });
+      
+      for (const [, wallet] of walletKeys) {
+        wallets.push(wallet as CommunityWallet);
+      }
+
+      // Sort by creation date (most recent first)
+      wallets.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+      return { success: true, wallets };
+    } catch (error) {
+      console.error('Error getting all wallets:', error);
+      return { success: false, error: 'Failed to get all wallets' };
     }
   }
 
@@ -786,6 +838,12 @@ export class CommunityWalletDO {
           return Response.json(result);
         }
 
+        case 'POST /register-wallet': {
+          const data = await request.json() as { walletId: string; walletData: CommunityWallet };
+          const result = await this.registerWallet(data.walletId, data.walletData);
+          return Response.json(result);
+        }
+
         case 'GET /wallet': {
           const walletId = url.searchParams.get('walletId');
           if (!walletId) {
@@ -801,6 +859,11 @@ export class CommunityWalletDO {
             return Response.json({ success: false, error: 'User ID required' }, { status: 400 });
           }
           const result = await this.getUserWallets(userId);
+          return Response.json(result);
+        }
+
+        case 'GET /all-wallets': {
+          const result = await this.getAllWallets();
           return Response.json(result);
         }
 

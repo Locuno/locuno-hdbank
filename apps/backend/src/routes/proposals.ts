@@ -20,16 +20,7 @@ proposals.get('/community/:communityId', async (c) => {
     const communityId = c.req.param('communityId');
     const status = c.req.query('status'); // optional filter by status
 
-    // Check if user is a member of the community
-    const memberResult = await CommunityWalletService.getWalletMembers(c.env, communityId);
-    if (!memberResult.success) {
-      return c.json({ success: false, message: 'Community not found' }, 404);
-    }
-
-    const isMember = memberResult.members?.some((member: any) => member.userId === userId);
-    if (!isMember) {
-      return c.json({ success: false, message: 'Access denied' }, 403);
-    }
+    // Membership check removed for demo purposes
 
     // Get proposals from the community wallet
     const result = await CommunityWalletService.getProposals(c.env, communityId, status);

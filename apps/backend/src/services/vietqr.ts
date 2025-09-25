@@ -329,6 +329,24 @@ export class VietQRService {
    * Generate QR code for a specific wallet ID with transfer note
    * This is a convenience method for the HDBank application
    */
+  /**
+   * Generate a short community ID from wallet ID
+   * Format: locuno + 5 character hash
+   */
+  static generateShortCommunityId(walletId: string): string {
+    // Create a simple hash from wallet ID
+    let hash = 0;
+    for (let i = 0; i < walletId.length; i++) {
+      const char = walletId.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    
+    // Convert to positive number and get last 5 digits
+    const shortId = Math.abs(hash).toString().slice(-5).padStart(5, '0');
+    return `locuno${shortId}`;
+  }
+
   static generateQRForWallet({
     walletId,
     bankCode = DEFAULT_BANK_ACCOUNT.bankCode, // Default to VPBank
@@ -344,10 +362,13 @@ export class VietQRService {
     amount?: number;
     template?: string;
   }): VietQRResponse {
+    // Generate short community ID for transfer note
+    const shortCommunityId = this.generateShortCommunityId(walletId);
+    
     const request: VietQRRequest = {
       bankId: bankCode,
       accountNo,
-      addInfo: walletId, // Use wallet ID as transfer note
+      addInfo: shortCommunityId, // Use short community ID as transfer note
       template
     };
     

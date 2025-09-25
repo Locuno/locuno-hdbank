@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#2563eb" />
     
     <!-- Security headers -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:;" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://maps.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: https://maps.googleapis.com https://maps.gstatic.com https://streetviewpixels-pa.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https: http://localhost:* https://maps.googleapis.com;" />
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta http-equiv="X-Frame-Options" content="SAMEORIGIN" />
     <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
@@ -19,8 +19,12 @@
     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    
-    <title>HD Bank - Digital Banking Platform</title>
+
+    <!-- Google Maps - API key will be injected dynamically -->
+    <!-- See docs/maps.md for instructions on how to get an API key -->
+
+
+    <title>Locuno - Galaxy Innovation Hackathon</title>
   </head>
   <body>
     <div id="root"></div>

@@ -1,15 +1,31 @@
 import { Hono } from 'hono';
 import { jwt } from 'hono/jwt';
 import { CommunityWalletService } from '../services/CommunityWalletService.js';
+import { createConfig } from '../config/index.js';
 
 const communities = new Hono();
 
 // JWT middleware for all community routes
 communities.use('*', async (c, next) => {
-  const jwtMiddleware = jwt({
-    secret: (c.env?.JWT_SECRET as string) || 'fallback-secret',
-  });
-  return jwtMiddleware(c, next);
+  try {
+    const config = createConfig(c.env);
+    const jwtMiddleware = jwt({
+      secret: config.jwt.secret,
+    });
+    
+    await jwtMiddleware(c, async () => {
+      // Continue to the actual endpoint
+      await next();
+    });
+  } catch (error) {
+    console.error('JWT middleware error in communities:', error);
+    return c.json({
+      success: false,
+      message: 'Authentication required',
+      error: 'Invalid or missing JWT token',
+      code: 'AUTH_TOKEN_INVALID'
+    }, 401);
+  }
 });
 
 // Create a new community
@@ -82,7 +98,8 @@ communities.get('/', async (c) => {
     const payload = c.get('jwtPayload');
     const userId = payload.userId;
 
-    const result = await CommunityWalletService.getUserWallets(c.env, userId);
+    // For demo purposes, return all communities instead of user-specific ones
+    const result = await CommunityWalletService.getAllWallets(c.env);
 
     if (result.success) {
       // Transform wallet data to community format for frontend compatibility

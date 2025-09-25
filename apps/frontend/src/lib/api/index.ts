@@ -30,6 +30,11 @@ const API_CONFIG = {
 // Log the API base URL in development for debugging
 if (import.meta.env.DEV) {
   console.log('🔗 API Base URL:', API_CONFIG.baseURL);
+  console.log('🔧 Environment variables:');
+  console.log('  - VITE_API_URL:', import.meta.env.VITE_API_URL);
+  console.log('  - DEV mode:', import.meta.env.DEV);
+  console.log('  - Current base URL:', currentBaseURL);
+  console.log('  - Has tried fallback:', hasTriedFallback);
 }
 
 // Create axios instance

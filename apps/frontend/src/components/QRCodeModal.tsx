@@ -125,16 +125,16 @@ export function QRCodeModal({ isOpen, onClose, walletId, amount = 100000, title 
               <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Ngân hàng:</span>
-                  <span className="font-medium">{qrData.bankInfo.shortName}</span>
+                  <span className="font-medium">{qrData.defaultAccount?.bankInfo?.shortName || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Số tài khoản:</span>
                   <div className="flex items-center space-x-2">
-                    <span className="font-mono">{qrData.request.accountNo}</span>
+                    <span className="font-mono">{qrData.requestInfo?.accountNo || qrData.defaultAccount?.accountNo || 'N/A'}</span>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => copyToClipboard(qrData.request.accountNo!)}
+                      onClick={() => copyToClipboard(qrData.requestInfo?.accountNo || qrData.defaultAccount?.accountNo || '')}
                       className="h-6 w-6 p-0"
                     >
                       <Copy className="h-3 w-3" />
@@ -143,7 +143,7 @@ export function QRCodeModal({ isOpen, onClose, walletId, amount = 100000, title 
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Tên tài khoản:</span>
-                  <span className="font-medium">{qrData.request.accountName}</span>
+                  <span className="font-medium">{qrData.requestInfo?.accountName || qrData.defaultAccount?.accountName || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Số tiền:</span>

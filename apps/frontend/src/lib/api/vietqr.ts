@@ -24,8 +24,21 @@ export interface VietQRResponse {
   success: boolean;
   qrCodeUrl: string;
   qrDataUrl: string;
-  bankInfo: Bank;
-  request: VietQRRequest;
+  walletId: string;
+  defaultAccount: {
+    bankCode: string;
+    accountNo: string;
+    accountName: string;
+    bankInfo: Bank;
+  };
+  requestInfo: {
+    accountNo: string;
+    accountName: string;
+    bankCode: string;
+    amount: number;
+    transferNote: string;
+    template: string;
+  };
 }
 
 export interface DefaultBankAccount {
@@ -89,8 +102,8 @@ export const vietqrApi = {
     amount?: number;
     template?: 'compact' | 'qr_only' | 'print';
   }): Promise<VietQRResponse> {
-    const response = await api.post<VietQRResponse>('/api/vietqr/default', params);
-    return response.data;
+    const response = await api.post<{success: boolean; data: VietQRResponse}>('/api/vietqr/default', params);
+    return response.data.data;
   },
 
   // Health check

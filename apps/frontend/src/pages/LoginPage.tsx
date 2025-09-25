@@ -3,11 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { authService } from '@/lib/api/auth';
+import { useAuth } from '@/hooks/useAuth';
 import { Eye, EyeOff, Shield, AlertCircle } from 'lucide-react';
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -32,19 +33,13 @@ export function LoginPage() {
     setError(null);
 
     try {
-      const result = await authService.login(formData);
+      const success = await login(formData.email, formData.password);
 
-      if (result.success) {
-        // Redirect to appropriate dashboard based on user role
-        const user = authService.getCurrentUser();
-        if (user) {
-          // For now, redirect to family dashboard as default
-          navigate('/family');
-        } else {
-          navigate('/onboarding');
-        }
+      if (success) {
+        // Redirect to family dashboard as default
+        navigate('/family');
       } else {
-        setError(result.message || 'Đăng nhập thất bại');
+        setError('Email hoặc mật khẩu không đúng');
       }
     } catch (err) {
       setError('Có lỗi xảy ra. Vui lòng thử lại.');

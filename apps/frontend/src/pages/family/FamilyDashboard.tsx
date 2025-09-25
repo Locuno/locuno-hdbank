@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { familyService, FamilyCircle, FamilyMember as ApiFamilyMember } from '@/lib/api/family';
+import { GoogleMap } from '@/components/GoogleMap';
 
 import {
   MapPin,
@@ -17,7 +18,9 @@ import {
   Footprints,
   Clock,
   Mail,
-  X
+  X,
+  Navigation,
+  Smartphone
 } from 'lucide-react';
 
 interface FamilyMember {
@@ -34,6 +37,58 @@ interface FamilyMember {
     heartRate?: number;
   };
 }
+
+// Demo location data for Google Maps - Vinhomes Grand Park area
+const demoLocations = [
+  {
+    id: '1',
+    name: 'Mẹ - Nguyễn Thị Lan',
+    role: 'parent',
+    avatar: '👩‍💼',
+    status: 'active' as const,
+    lat: 10.841,
+    lng: 106.810,
+    location: 'Vinhomes Grand Park - The Rainbow',
+    lastUpdate: '2 phút trước',
+    icon: 'home'
+  },
+  {
+    id: '2',
+    name: 'Con - Nguyễn Minh An',
+    role: 'child',
+    avatar: '👦',
+    status: 'safe' as const,
+    lat: 10.8395,
+    lng: 106.8085,
+    location: 'Trường Vinschool Grand Park',
+    lastUpdate: '15 phút trước',
+    icon: 'school'
+  },
+  {
+    id: '3',
+    name: 'Bà - Trần Thị Hoa',
+    role: 'elderly',
+    avatar: '👵',
+    status: 'safe' as const,
+    lat: 10.8425,
+    lng: 106.8115,
+    location: 'Central Park - Vinhomes Grand Park',
+    lastUpdate: '5 phút trước',
+    icon: 'park'
+  },
+  {
+    id: '4',
+    name: 'Ông - Nguyễn Văn Bình',
+    role: 'elderly',
+    avatar: '👴',
+    status: 'active' as const,
+    lat: 10.8380,
+    lng: 106.8120,
+    location: 'Vincom Mega Mall Grand Park',
+    lastUpdate: '8 phút trước',
+    icon: 'shopping'
+  }
+];
 
 const mockFamilyMembers: FamilyMember[] = [
   {
@@ -249,6 +304,95 @@ export function FamilyDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Family Location Map */}
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle className="flex items-center space-x-2">
+                <Navigation className="w-5 h-5 text-blue-600" />
+                <span>Vị trí gia đình</span>
+              </CardTitle>
+              <CardDescription>Theo dõi vị trí thời gian thực của các thành viên</CardDescription>
+            </div>
+            <Button variant="outline" size="sm">
+              <Settings className="w-4 h-4 mr-2" />
+              Cài đặt
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {/* Google Maps */}
+          <div className="mb-4">
+            <GoogleMap
+              locations={demoLocations}
+              center={{ lat: 10.841, lng: 106.810 }}
+              zoom={16}
+              height="400px"
+            />
+          </div>
+
+          {/* Location Summary */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {demoLocations.map((location) => (
+              <div key={location.id} className="bg-gray-50 rounded-lg p-3">
+                <div className="flex items-center space-x-2 mb-2">
+                  <span className="text-lg">{location.avatar}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{location.name.split(' - ')[1] || location.name}</p>
+                    <div className="flex items-center space-x-1">
+                      <div className={`w-2 h-2 rounded-full ${
+                        location.status === 'active' ? 'bg-green-500' :
+                        location.status === 'safe' ? 'bg-blue-500' : 'bg-yellow-500'
+                      }`}></div>
+                      <span className="text-xs text-gray-500 capitalize">{location.status}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-1 text-xs text-gray-600">
+                    <MapPin className="w-3 h-3" />
+                    <span className="truncate">{location.location}</span>
+                  </div>
+                  <div className="flex items-center space-x-1 text-xs text-gray-500">
+                    <Clock className="w-3 h-3" />
+                    <span>{location.lastUpdate}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Map Actions */}
+          <div className="flex justify-between items-center mt-4 pt-4 border-t">
+            <div className="flex items-center space-x-4 text-sm text-gray-600">
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>Hoạt động</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span>An toàn</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                <span>Cảnh báo</span>
+              </div>
+            </div>
+            <div className="flex space-x-2">
+              <Button variant="outline" size="sm">
+                <Smartphone className="w-4 h-4 mr-2" />
+                Chia sẻ vị trí
+              </Button>
+              <Button variant="outline" size="sm">
+                <Navigation className="w-4 h-4 mr-2" />
+                Vinhomes Grand Park
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Family Members */}
       <Card>

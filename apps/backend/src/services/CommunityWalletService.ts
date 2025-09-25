@@ -53,10 +53,8 @@ export class CommunityWalletService {
       const durableObjectId = env.COMMUNITY_WALLET_DO.idFromName(userWalletId);
       const durableObject = env.COMMUNITY_WALLET_DO.get(durableObjectId);
       
-      const response = await durableObject.fetch('http://localhost/get-user-wallets', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId }),
+      const response = await durableObject.fetch(`http://localhost/user-wallets?userId=${encodeURIComponent(userId)}`, {
+        method: 'GET',
       });
       
       const result = await response.json();
@@ -64,6 +62,24 @@ export class CommunityWalletService {
     } catch (error) {
       console.error('CommunityWalletService.getUserWallets error:', error);
       return { success: false, error: 'Failed to get user wallets' };
+    }
+  }
+
+  static async getAllWallets(env: any) {
+    try {
+      // Use a consistent DO instance for global operations
+      const durableObjectId = env.COMMUNITY_WALLET_DO.idFromName('global_wallets');
+      const durableObject = env.COMMUNITY_WALLET_DO.get(durableObjectId);
+      
+      const response = await durableObject.fetch('http://localhost/all-wallets', {
+        method: 'GET',
+      });
+      
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('CommunityWalletService.getAllWallets error:', error);
+      return { success: false, error: 'Failed to get all wallets' };
     }
   }
 
@@ -119,7 +135,10 @@ export class CommunityWalletService {
       const durableObjectId = env.COMMUNITY_WALLET_DO.idFromName(walletId);
       const durableObject = env.COMMUNITY_WALLET_DO.get(durableObjectId);
       
-      const response = await durableObject.fetch('http://localhost/get-members', {
+      const url = new URL('http://localhost/wallet-members');
+      url.searchParams.set('walletId', walletId);
+      
+      const response = await durableObject.fetch(url.toString(), {
         method: 'GET',
       });
       
@@ -163,7 +182,8 @@ export class CommunityWalletService {
       const durableObjectId = env.COMMUNITY_WALLET_DO.idFromName(walletId);
       const durableObject = env.COMMUNITY_WALLET_DO.get(durableObjectId);
       
-      const url = new URL('http://localhost/get-proposals');
+      const url = new URL('http://localhost/wallet-proposals');
+      url.searchParams.set('walletId', walletId);
       if (status) {
         url.searchParams.set('status', status);
       }

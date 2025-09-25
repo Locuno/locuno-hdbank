@@ -3,11 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { authService, RegisterRequest } from '@/lib/api/auth';
+import { useAuth } from '@/hooks/useAuth';
+import { RegisterRequest } from '@/lib/api/auth';
 import { Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 
 export function RegisterPage() {
   const navigate = useNavigate();
+  const { register } = useAuth();
   const [formData, setFormData] = useState<RegisterRequest>({
     email: '',
     password: '',
@@ -58,13 +60,13 @@ export function RegisterPage() {
     }
 
     try {
-      const result = await authService.register(formData);
-      
-      if (result.success) {
+      const success = await register(formData);
+
+      if (success) {
         // Redirect to onboarding for role setup and eKYC
         navigate('/onboarding');
       } else {
-        setError(result.message || 'Đăng ký thất bại');
+        setError('Đăng ký thất bại. Vui lòng thử lại.');
       }
     } catch (err) {
       setError('Có lỗi xảy ra. Vui lòng thử lại.');

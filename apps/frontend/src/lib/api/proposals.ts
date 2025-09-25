@@ -57,7 +57,8 @@ export const proposalsApi = {
   getProposals: async (communityId: string): Promise<Proposal[]> => {
     try {
       const response = await api.get(`/api/proposals/community/${communityId}`);
-      return response.data;
+      // Backend returns {success: true, data: [...]} structure
+      return response.data.data || [];
     } catch (error) {
       console.error('Error fetching proposals:', error);
       throw error;

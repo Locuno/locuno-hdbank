@@ -40,44 +40,28 @@ export const communityService = {
   // Community Management
   async createCommunity(data: CreateCommunityRequest): Promise<ApiResponse<{ community: CommunityGroup }>> {
     try {
-      // Use wallet API endpoint since communities are implemented as wallets in the backend
-      const response = await api.post<ApiResponse<{ walletId: string }>>(
-        '/api/wallet/create',
+      // Use the dedicated communities API endpoint
+      const response = await api.post<ApiResponse<{ community: CommunityGroup }>>(
+        '/api/communities',
         {
           name: data.name,
-          description: data.description,
-          settings: {
-            type: data.type,
-            communityType: data.type
-          }
+          type: data.type,
+          description: data.description
         }
       );
       
       if (response.data.success) {
-        // Transform wallet response to community format
-        const community: CommunityGroup = {
-          id: response.data.data?.walletId || '',
-          name: data.name,
-          type: data.type,
-          description: data.description,
-          members: 1,
-          balance: 0,
-          currency: 'VND',
-          walletId: response.data.data?.walletId || '',
-          createdAt: new Date().toISOString()
-        };
-        
         return {
           success: true,
           message: 'Community created successfully',
-          data: { community }
+          data: { community: response.data.data?.community || {} as CommunityGroup }
         };
       }
       
       return {
         success: false,
-        message: 'Failed to create community',
-        errors: ['Unknown error'],
+        message: response.data.message || 'Failed to create community',
+        errors: response.data.errors || ['Unknown error'],
         data: { community: {} as CommunityGroup }
       };
     } catch (error: any) {
@@ -91,37 +75,23 @@ export const communityService = {
 
   async getUserCommunities(): Promise<ApiResponse<{ communities: CommunityGroup[] }>> {
     try {
-      // Use wallet API endpoint to get user's wallets (communities)
-      const response = await api.get<ApiResponse<{ wallets: any[] }>>(
-        '/api/wallet/my-wallets'
+      // Use the dedicated communities API endpoint
+      const response = await api.get<ApiResponse<{ communities: CommunityGroup[] }>>(
+        '/api/communities'
       );
       
       if (response.data.success) {
-        // Transform wallets to communities format
-        const communities: CommunityGroup[] = (response.data.data?.wallets || []).map((wallet: any) => ({
-          id: wallet.id,
-          name: wallet.name,
-          type: wallet.settings?.communityType || 'apartment',
-          description: wallet.description,
-          members: wallet.memberCount || 1,
-          balance: wallet.balance || 0,
-          currency: wallet.currency || 'VND',
-          walletId: wallet.id,
-          createdAt: wallet.createdAt,
-          updatedAt: wallet.updatedAt
-        }));
-        
         return {
           success: true,
           message: 'Communities retrieved successfully',
-          data: { communities }
+          data: { communities: response.data.data?.communities || [] }
         };
       }
       
       return {
         success: false,
-        message: 'Failed to get communities',
-        errors: ['Unknown error'],
+        message: response.data.message || 'Failed to get communities',
+        errors: response.data.errors || ['Unknown error'],
         data: { communities: [] }
       };
     } catch (error: any) {
@@ -135,37 +105,23 @@ export const communityService = {
 
   async getCommunityDetails(communityId: string): Promise<ApiResponse<{ community: CommunityGroup }>> {
     try {
-      // Use wallet API endpoint to get wallet details
-      const response = await api.get<ApiResponse<{ wallet: any }>>(
-        `/api/wallet/${communityId}`
+      // Use the dedicated communities API endpoint
+      const response = await api.get<ApiResponse<{ community: CommunityGroup }>>(
+        `/api/communities/${communityId}`
       );
       
       if (response.data.success) {
-        const wallet = response.data.data?.wallet;
-        const community: CommunityGroup = {
-          id: wallet.id,
-          name: wallet.name,
-          type: wallet.settings?.communityType || 'apartment',
-          description: wallet.description,
-          members: wallet.memberCount || 1,
-          balance: wallet.balance || 0,
-          currency: wallet.currency || 'VND',
-          walletId: wallet.id,
-          createdAt: wallet.createdAt,
-          updatedAt: wallet.updatedAt
-        };
-        
         return {
           success: true,
           message: 'Community details retrieved successfully',
-          data: { community }
+          data: { community: response.data.data?.community || {} as CommunityGroup }
         };
       }
       
       return {
         success: false,
-        message: 'Failed to get community details',
-        errors: ['Unknown error'],
+        message: response.data.message || 'Failed to get community details',
+        errors: response.data.errors || ['Unknown error'],
         data: { community: {} as CommunityGroup }
       };
     } catch (error: any) {
