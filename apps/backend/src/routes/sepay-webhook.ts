@@ -113,6 +113,25 @@ sepayWebhook.post('/notify', async (c) => {
       return c.json({ success: true, message: 'Outgoing transfer ignored' }, 200);
     }
 
+    // Validate transfer amount for incoming transfers
+    if (webhookData.transferAmount <= 0) {
+      console.log(`SePay webhook: Invalid transfer amount: ${webhookData.transferAmount}`);
+      return c.json({ success: false, error: 'Transfer amount must be positive for incoming transfers' }, 400);
+    }
+
+    // Validate amount is a valid number
+    if (!Number.isFinite(webhookData.transferAmount)) {
+      console.log(`SePay webhook: Invalid transfer amount (not a finite number): ${webhookData.transferAmount}`);
+      return c.json({ success: false, error: 'Transfer amount must be a valid number' }, 400);
+    }
+
+    // Set reasonable maximum limit (100 billion VND)
+    const MAX_TRANSFER_AMOUNT = 100_000_000_000;
+    if (webhookData.transferAmount > MAX_TRANSFER_AMOUNT) {
+      console.log(`SePay webhook: Transfer amount exceeds maximum limit: ${webhookData.transferAmount}`);
+      return c.json({ success: false, error: `Transfer amount exceeds maximum limit of ${MAX_TRANSFER_AMOUNT.toLocaleString()} VND` }, 400);
+    }
+
     // Check for duplicate transactions
     if (isDuplicateTransaction(webhookData)) {
       console.log('SePay webhook: Duplicate transaction detected');
@@ -127,13 +146,29 @@ sepayWebhook.post('/notify', async (c) => {
       return c.json({ success: true, message: 'No wallet ID found' }, 200);
     }
 
+    let actualWalletId: string = walletInfo.id;
+    
+    // If it's a community wallet with short ID format (locuno12345), find the actual wallet ID
+    if (walletInfo.type === 'community' && walletInfo.id.startsWith('locuno')) {
+      console.log(`SePay webhook: Looking up wallet for short ID: ${walletInfo.id}`);
+      const foundWalletId = await CommunityWalletService.findWalletByShortId(c.env, walletInfo.id);
+      
+      if (!foundWalletId) {
+        console.log(`SePay webhook: No wallet found for short ID: ${walletInfo.id}`);
+        return c.json({ success: true, message: 'No wallet found for short ID' }, 200);
+      }
+      
+      actualWalletId = foundWalletId;
+      console.log(`SePay webhook: Found wallet ${actualWalletId} for short ID ${walletInfo.id}`);
+    }
+
     let result;
     
     try {
       if (walletInfo.type === 'family') {
         // Update family wallet balance
         result = await FamilyService.updateWalletBalance(c.env, {
-          familyId: walletInfo.id,
+          familyId: actualWalletId,
           amount: webhookData.transferAmount,
           transactionId: webhookData.id.toString(),
           description: `SePay deposit: ${webhookData.content}`,
@@ -142,7 +177,7 @@ sepayWebhook.post('/notify', async (c) => {
       } else if (walletInfo.type === 'community') {
         // Update community wallet balance
         result = await CommunityWalletService.updateWalletBalance(c.env, {
-          walletId: walletInfo.id,
+          walletId: actualWalletId,
           amount: webhookData.transferAmount,
           transactionId: webhookData.id.toString(),
           description: `SePay deposit: ${webhookData.content}`,
@@ -152,20 +187,20 @@ sepayWebhook.post('/notify', async (c) => {
 
       if (result && result.success) {
         // Log successful transaction
-        logTransaction(webhookData, walletInfo.type, walletInfo.id, 'processed');
+        logTransaction(webhookData, walletInfo.type, actualWalletId, 'processed');
         
-        console.log(`SePay webhook: Successfully updated ${walletInfo.type} wallet ${walletInfo.id} with amount ${webhookData.transferAmount}`);
+        console.log(`SePay webhook: Successfully updated ${walletInfo.type} wallet ${actualWalletId} with amount ${webhookData.transferAmount}`);
         
         return c.json({ 
           success: true, 
           message: `${walletInfo.type} wallet updated successfully`,
-          walletId: walletInfo.id,
+          walletId: actualWalletId,
           amount: webhookData.transferAmount
         }, 201);
       } else {
         // Log failed transaction
         const errorMsg = result?.error || 'Unknown error';
-        logTransaction(webhookData, walletInfo.type, walletInfo.id, 'failed', errorMsg);
+        logTransaction(webhookData, walletInfo.type, actualWalletId, 'failed', errorMsg);
         
         console.error(`SePay webhook: Failed to update ${walletInfo.type} wallet:`, errorMsg);
         
@@ -177,7 +212,7 @@ sepayWebhook.post('/notify', async (c) => {
     } catch (error) {
       // Log failed transaction
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logTransaction(webhookData, walletInfo.type, walletInfo.id, 'failed', errorMsg);
+      logTransaction(webhookData, walletInfo.type, actualWalletId, 'failed', errorMsg);
       
       console.error(`SePay webhook: Error processing ${walletInfo.type} wallet update:`, error);
       

@@ -324,4 +324,34 @@ export class CommunityWalletService {
       return { success: false, error: 'Failed to update wallet balance' };
     }
   }
+
+  /**
+   * Find wallet ID by short community ID (locuno12345 format)
+   * This method generates the short ID for all wallets and finds the matching one
+   */
+  static async findWalletByShortId(env: any, shortCommunityId: string): Promise<string | null> {
+    try {
+      // Import VietQRService to use the hash function
+      const { VietQRService } = await import('./vietqr');
+      
+      // Get all wallets
+      const walletsResponse = await this.getAllWallets(env);
+      if (!walletsResponse.success || !walletsResponse.wallets) {
+        return null;
+      }
+      
+      // Check each wallet to see if its short ID matches
+      for (const wallet of walletsResponse.wallets) {
+        const generatedShortId = VietQRService.generateShortCommunityId(wallet.walletId);
+        if (generatedShortId === shortCommunityId) {
+          return wallet.walletId;
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('CommunityWalletService.findWalletByShortId error:', error);
+      return null;
+    }
+  }
 }
