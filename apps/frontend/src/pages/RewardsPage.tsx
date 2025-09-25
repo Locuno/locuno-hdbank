@@ -1,18 +1,16 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  Gift, 
-  Star, 
-  Trophy, 
-  Plane, 
-  MapPin, 
-  Clock, 
+import {
+  Gift,
+  Star,
+  Trophy,
+  Plane,
+  MapPin,
+  Clock,
   Zap,
   Target,
-  Award,
   TrendingUp,
-  Calendar,
   Users
 } from 'lucide-react';
 

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import {
   Shield,
   Heart,
@@ -8,10 +8,8 @@ import {
   Gift,
   ArrowRight,
   CheckCircle,
-  MapPin,
   Vote,
   Zap,
-  Star,
   Plane,
   Eye
 } from 'lucide-react';
@@ -93,7 +91,7 @@ export function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((feature, index) => {
+            {features.map((feature) => {
               const Icon = feature.icon;
               return (
                 <Card key={feature.title} className="hover:shadow-lg transition-shadow">

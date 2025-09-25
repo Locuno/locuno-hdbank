@@ -1,12 +1,11 @@
-import { useState } from 'react';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  Heart, 
-  MapPin, 
-  Activity, 
-  Shield, 
-  Users, 
+import {
+  MapPin,
+  Activity,
+  Shield,
+  Users,
   AlertTriangle,
   Plus,
   Settings,
@@ -95,7 +94,6 @@ const getStatusText = (status: string) => {
 };
 
 export function FamilyDashboard() {
-  const [selectedMember, setSelectedMember] = useState<string | null>(null);
 
   return (
     <div className="space-y-6">
@@ -195,8 +193,7 @@ export function FamilyDashboard() {
             {mockFamilyMembers.map((member) => (
               <div
                 key={member.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
-                onClick={() => setSelectedMember(member.id)}
+                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
               >
                 <div className="flex items-center space-x-4">
                   <div className="text-3xl">{member.avatar}</div>
