@@ -22,3 +22,4 @@ sketch
 *dist*
 *.wrangler*
 .env
+apps/frontend/wrangler.toml

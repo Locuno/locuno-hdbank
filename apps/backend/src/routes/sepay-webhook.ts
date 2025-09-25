@@ -50,6 +50,12 @@ function extractWalletInfo(content: string): { type: 'family' | 'community' | nu
     return { type: 'community', id: communityMatch[1] || null };
   }
 
+  // Pattern for new short community ID: locuno[5digits]
+  const shortCommunityMatch = content.match(/locuno(\d{5})/i);
+  if (shortCommunityMatch) {
+    return { type: 'community', id: shortCommunityMatch[0] || null }; // Return full locuno12345 format
+  }
+
   return { type: null, id: null };
 }
 
