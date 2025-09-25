@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 // API Configuration
 const API_CONFIG = {
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
+  baseURL: import.meta.env.VITE_API_URL || 'https://hdbank-backend.4rqnf2gvxf.workers.dev',
   timeout: parseInt(import.meta.env.VITE_API_TIMEOUT || '30000'),
   retryAttempts: parseInt(import.meta.env.VITE_API_RETRY_ATTEMPTS || '3'),
 };
