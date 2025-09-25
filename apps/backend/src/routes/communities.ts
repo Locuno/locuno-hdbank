@@ -210,4 +210,210 @@ communities.post('/:communityId/join', async (c) => {
   }
 });
 
+// Get community transactions
+communities.get('/:communityId/transactions', async (c) => {
+  const communityId = c.req.param('communityId');
+  const { page = '1', limit = '10', type, status, startDate, endDate } = c.req.query();
+
+  try {
+    // Mock transaction data for now
+    const mockTransactions = [
+      {
+        id: 'txn-001',
+        type: 'deposit',
+        amount: 500000,
+        currency: 'VND',
+        description: 'Nạp tiền vào quỹ cộng đồng',
+        fromAccount: 'user-123',
+        toAccount: communityId,
+        communityId,
+        status: 'completed',
+        timestamp: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+        createdBy: 'user-123',
+        metadata: {
+          bankCode: 'VCB',
+          transactionRef: 'VCB123456789',
+        }
+      },
+      {
+        id: 'txn-002',
+        type: 'deposit',
+        amount: 1000000,
+        currency: 'VND',
+        description: 'Đóng góp cho dự án cải tạo sân chơi',
+        fromAccount: 'user-456',
+        toAccount: communityId,
+        communityId,
+        status: 'completed',
+        timestamp: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+        createdBy: 'user-456',
+        metadata: {
+          bankCode: 'TCB',
+          transactionRef: 'TCB987654321',
+        }
+      },
+      {
+        id: 'txn-003',
+        type: 'proposal_payment',
+        amount: 300000,
+        currency: 'VND',
+        description: 'Thanh toán cho đề xuất mua thiết bị',
+        fromAccount: communityId,
+        toAccount: 'vendor-789',
+        communityId,
+        proposalId: 'prop-001',
+        status: 'completed',
+        timestamp: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
+        createdBy: 'system',
+        metadata: {
+          approvedBy: ['user-123', 'user-456', 'user-789'],
+        }
+      },
+      {
+        id: 'txn-004',
+        type: 'deposit',
+        amount: 750000,
+        currency: 'VND',
+        description: 'Nạp tiền định kỳ tháng 12',
+        fromAccount: 'user-789',
+        toAccount: communityId,
+        communityId,
+        status: 'pending',
+        timestamp: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
+        createdBy: 'user-789',
+        metadata: {
+          bankCode: 'MB',
+          transactionRef: 'MB555666777',
+        }
+      }
+    ];
+
+    // Apply filters
+    let filteredTransactions = mockTransactions;
+
+    if (type && type !== 'all') {
+      filteredTransactions = filteredTransactions.filter(t => t.type === type);
+    }
+
+    if (status && status !== 'all') {
+      filteredTransactions = filteredTransactions.filter(t => t.status === status);
+    }
+
+    // Calculate summary
+    const summary = {
+      totalDeposits: filteredTransactions
+        .filter(t => t.type === 'deposit' && t.status === 'completed')
+        .reduce((sum, t) => sum + t.amount, 0),
+      totalWithdrawals: filteredTransactions
+        .filter(t => t.type === 'withdrawal' && t.status === 'completed')
+        .reduce((sum, t) => sum + t.amount, 0),
+      totalTransfers: filteredTransactions
+        .filter(t => t.type === 'transfer' && t.status === 'completed')
+        .reduce((sum, t) => sum + t.amount, 0),
+      balance: 1950000, // Mock balance
+      currency: 'VND',
+      transactionCount: filteredTransactions.length
+    };
+
+    // Pagination
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const startIndex = (pageNum - 1) * limitNum;
+    const endIndex = startIndex + limitNum;
+    const paginatedTransactions = filteredTransactions.slice(startIndex, endIndex);
+
+    return c.json({
+      success: true,
+      data: {
+        transactions: paginatedTransactions,
+        summary,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total: filteredTransactions.length,
+          totalPages: Math.ceil(filteredTransactions.length / limitNum)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching community transactions:', error);
+    return c.json({ success: false, message: 'Internal server error' }, 500);
+  }
+});
+
+// Create deposit transaction
+communities.post('/:communityId/transactions/deposit', async (c) => {
+  const communityId = c.req.param('communityId');
+
+  try {
+    const body = await c.req.json();
+    const { amount, currency = 'VND', description } = body;
+
+    // Mock deposit creation
+    const newTransaction = {
+      id: 'txn-' + Date.now(),
+      type: 'deposit',
+      amount: parseFloat(amount),
+      currency,
+      description: description || 'Nạp tiền vào quỹ cộng đồng',
+      fromAccount: 'current-user', // Would get from JWT
+      toAccount: communityId,
+      communityId,
+      status: 'pending',
+      timestamp: new Date().toISOString(),
+      createdBy: 'current-user', // Would get from JWT
+      metadata: {
+        bankCode: 'VCB',
+        transactionRef: 'VCB' + Date.now(),
+      }
+    };
+
+    return c.json({
+      success: true,
+      data: {
+        transaction: newTransaction,
+        qrCode: `https://api.vietqr.io/v2/generate/970436/1234567890/${amount}/compact.jpg?memo=${encodeURIComponent(description || 'Nap tien cong dong')}`
+      }
+    });
+  } catch (error) {
+    console.error('Error creating deposit:', error);
+    return c.json({ success: false, message: 'Internal server error' }, 500);
+  }
+});
+
+// Get specific transaction
+communities.get('/:communityId/transactions/:transactionId', async (c) => {
+  const communityId = c.req.param('communityId');
+  const transactionId = c.req.param('transactionId');
+
+  try {
+    // Mock transaction data
+    const mockTransaction = {
+      id: transactionId,
+      type: 'deposit',
+      amount: 500000,
+      currency: 'VND',
+      description: 'Nạp tiền vào quỹ cộng đồng',
+      fromAccount: 'user-123',
+      toAccount: communityId,
+      communityId,
+      status: 'completed',
+      timestamp: new Date().toISOString(),
+      createdBy: 'user-123',
+      metadata: {
+        bankCode: 'VCB',
+        transactionRef: 'VCB123456789',
+      }
+    };
+
+    return c.json({
+      success: true,
+      data: mockTransaction
+    });
+  } catch (error) {
+    console.error('Error fetching transaction:', error);
+    return c.json({ success: false, message: 'Internal server error' }, 500);
+  }
+});
+
 export default communities;

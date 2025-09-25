@@ -504,11 +504,18 @@ export function RewardsPage() {
         <CardContent className="relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {filteredDeals.filter(deal => deal.isAuction).slice(0, 3).map((deal) => (
-              <div key={deal.id} className="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-4 border border-white border-opacity-20">
+              <div
+                key={deal.id}
+                className="rounded-lg p-4 border border-white border-opacity-20 backdrop-blur-sm"
+                style={{
+                  background: 'linear-gradient(135deg, #FFD600 0%, #FF6F00 50%, #FF1744 100%)',
+                  boxShadow: '0 4px 24px 0 rgba(255, 107, 0, 0.12)',
+                }}
+              >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-2xl">{deal.image}</span>
                   <div className="bg-white bg-opacity-20 px-2 py-1 rounded-full">
-                    <span className="text-xs font-bold text-white">{deal.brand}</span>
+                    <span className="text-xs font-bold text-red-500">{deal.brand}</span>
                   </div>
                 </div>
                 <h4 className="font-bold text-white mb-1 text-sm">{deal.title}</h4>

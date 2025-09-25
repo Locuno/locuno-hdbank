@@ -21,6 +21,7 @@ import {
 import { CreateCommunityModal } from '@/components/CreateCommunityModal';
 import { QRCodeModal } from '@/components/QRCodeModal';
 import { CreateProposalModal } from '@/components/CreateProposalModal';
+import { TransactionHistory } from '@/components/TransactionHistory';
 import { communityService } from '@/lib/api/community';
 import { proposalsApi } from '@/lib/api/proposals';
 
@@ -94,6 +95,7 @@ export function CommunityDashboard() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [showProposalModal, setShowProposalModal] = useState(false);
+  const [showTransactionHistory, setShowTransactionHistory] = useState(false);
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -576,7 +578,10 @@ export function CommunityDashboard() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+        <Card
+          className="hover:shadow-md transition-shadow cursor-pointer"
+          onClick={() => setShowTransactionHistory(true)}
+        >
           <CardContent className="p-6 text-center">
             <DollarSign className="w-12 h-12 text-green-600 mx-auto mb-3" />
             <h3 className="font-semibold mb-2">Lịch sử giao dịch</h3>
@@ -648,6 +653,13 @@ export function CommunityDashboard() {
         onProposalCreated={handleProposalCreated}
         communityId={selectedGroup}
         communityName={currentGroup?.name || ''}
+      />
+
+      {/* Transaction History Modal */}
+      <TransactionHistory
+        communityId={selectedGroup}
+        isOpen={showTransactionHistory}
+        onClose={() => setShowTransactionHistory(false)}
       />
     </div>
   );
