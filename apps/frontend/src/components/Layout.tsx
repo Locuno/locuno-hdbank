@@ -176,7 +176,7 @@ export function Layout({ children }: LayoutProps) {
               <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
                 <span className="text-white font-bold text-xs">L</span>
               </div>
-              <span className="text-gray-600">© 2024 Locuno. Được phát triển bởi Sovico Group.</span>
+              <span className="text-gray-600">© 2024 Locuno. Được phát triển bởi Locuno</span>
             </div>
             <div className="flex space-x-6 text-sm text-gray-600">
               <Link to="/privacy" className="hover:text-gray-900">Chính sách bảo mật</Link>

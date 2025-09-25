@@ -295,7 +295,7 @@ export function RegisterPage() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-xs text-gray-500">
-          <p>© 2024 Locuno. Được phát triển bởi Sovico Group.</p>
+          <p>© 2024 Locuno. Được phát triển bởi Locuno</p>
         </div>
       </div>
     </div>

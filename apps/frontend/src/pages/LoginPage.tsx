@@ -180,7 +180,7 @@ export function LoginPage() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-xs text-gray-500">
-          <p>© 2024 Locuno. Được phát triển bởi Sovico Group.</p>
+          <p>© 2024 Locuno. Được phát triển bởi Locuno</p>
           <div className="flex justify-center space-x-4 mt-2">
             <Link to="/privacy" className="hover:text-gray-700">Chính sách bảo mật</Link>
             <Link to="/terms" className="hover:text-gray-700">Điều khoản sử dụng</Link>
