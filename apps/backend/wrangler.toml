@@ -8,14 +8,30 @@ compatibility_flags = ["nodejs_compat"]
 name = "hdbank-backend-prod"
 vars = { ENVIRONMENT = "production" }
 
+[[env.production.durable_objects.bindings]]
+name = "USER_PROFILE_DO"
+class_name = "UserProfileDO"
+script_name = "hdbank-backend-prod"
+
 [env.staging]
 name = "hdbank-backend-staging"
 vars = { ENVIRONMENT = "staging" }
 
+[[env.staging.durable_objects.bindings]]
+name = "USER_PROFILE_DO"
+class_name = "UserProfileDO"
+script_name = "hdbank-backend-staging"
+
+# Durable Objects
+[[durable_objects.bindings]]
+name = "USER_PROFILE_DO"
+class_name = "UserProfileDO"
+script_name = "hdbank-backend"
+
 # KV Namespaces for caching
 [[kv_namespaces]]
 binding = "CACHE"
-id = "your-kv-namespace-id"
+id = "2d43ed1a5ba243b592bfe21bd4a12b49"
 preview_id = "your-preview-kv-namespace-id"
 
 # D1 Database (if using Cloudflare D1 instead of external PostgreSQL)

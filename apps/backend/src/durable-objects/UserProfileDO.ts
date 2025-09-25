@@ -115,9 +115,9 @@ export class UserProfileDO {
       };
 
       // Store data
-      await this.ctx.storage.put(`profile:${userData.email}`, userProfile);
-      await this.ctx.storage.put(`auth:${userData.email}`, authData);
-      await this.ctx.storage.put(`user:${userId}`, userData.email);
+      await this.state.storage.put(`profile:${userData.email}`, userProfile);
+      await this.state.storage.put(`auth:${userData.email}`, authData);
+      await this.state.storage.put(`user:${userId}`, userData.email);
 
       return { success: true, userId };
     } catch (error) {
@@ -132,8 +132,8 @@ export class UserProfileDO {
     error?: string;
   }> {
     try {
-      const authData = await this.ctx.storage.get<AuthData>(`auth:${email}`);
-      const userProfile = await this.ctx.storage.get<UserProfile>(`profile:${email}`);
+      const authData = await this.state.storage.get(`auth:${email}`) as AuthData;
+      const userProfile = await this.state.storage.get(`profile:${email}`) as UserProfile;
 
       if (!authData || !userProfile) {
         return { success: false, error: 'Invalid credentials' };
@@ -150,7 +150,8 @@ export class UserProfileDO {
       }
 
       // Verify password
-      const isValidPassword = await bcrypt.compare(password, authData.passwordHash);
+      const hashedInputPassword = await this.hashPassword(password, authData.salt);
+      const isValidPassword = hashedInputPassword === authData.passwordHash;
       
       if (!isValidPassword) {
         // Increment login attempts
@@ -165,7 +166,7 @@ export class UserProfileDO {
           updatedProfile.lockedUntil = new Date(Date.now() + 15 * 60 * 1000).toISOString();
         }
 
-        await this.ctx.storage.put(`profile:${email}`, updatedProfile);
+        await this.state.storage.put(`profile:${email}`, updatedProfile);
         return { success: false, error: 'Invalid credentials' };
       }
 
@@ -178,7 +179,7 @@ export class UserProfileDO {
         lockedUntil: undefined,
       };
 
-      await this.ctx.storage.put(`profile:${email}`, updatedProfile);
+      await this.state.storage.put(`profile:${email}`, updatedProfile);
 
       return { success: true, user: updatedProfile };
     } catch (error) {
@@ -188,12 +189,12 @@ export class UserProfileDO {
 
   // Get user profile by email
   async getUserProfile(email: string): Promise<UserProfile | null> {
-    return await this.ctx.storage.get<UserProfile>(`profile:${email}`) || null;
+    return await this.state.storage.get(`profile:${email}`) as UserProfile || null;
   }
 
   // Get user profile by ID
   async getUserProfileById(userId: string): Promise<UserProfile | null> {
-    const email = await this.ctx.storage.get<string>(`user:${userId}`);
+    const email = await this.state.storage.get(`user:${userId}`) as string;
     if (!email) return null;
     return await this.getUserProfile(email);
   }
@@ -205,7 +206,7 @@ export class UserProfileDO {
     error?: string;
   }> {
     try {
-      const existingProfile = await this.ctx.storage.get<UserProfile>(`profile:${email}`);
+      const existingProfile = await this.state.storage.get(`profile:${email}`) as UserProfile;
       if (!existingProfile) {
         return { success: false, error: 'User not found' };
       }
@@ -218,7 +219,7 @@ export class UserProfileDO {
 
       // Validate updated profile
       const validatedProfile = UserProfileSchema.parse(updatedProfile);
-      await this.ctx.storage.put(`profile:${email}`, validatedProfile);
+      await this.state.storage.put(`profile:${email}`, validatedProfile);
 
       return { success: true, user: validatedProfile };
     } catch (error) {
@@ -227,34 +228,49 @@ export class UserProfileDO {
   }
 
   // Store refresh token
-  async storeRefreshToken(email: string, token: string, expiresAt: string): Promise<boolean> {
+  async storeRefreshToken(email: string, token: string, expiresAt: string, invalidateOld?: string): Promise<{
+    success: boolean;
+    error?: string;
+  }> {
     try {
-      const authData = await this.ctx.storage.get<AuthData>(`auth:${email}`);
-      if (!authData) return false;
+      const authData = await this.state.storage.get(`auth:${email}`) as AuthData;
+      if (!authData) {
+        return { success: false, error: 'User not found' };
+      }
+
+      // Clean up expired tokens and optionally remove old token
+      let validTokens = authData.refreshTokens.filter(
+        rt => new Date(rt.expiresAt) > new Date()
+      );
+
+      // Remove old token if specified
+      if (invalidateOld) {
+        validTokens = validTokens.filter(rt => rt.token !== invalidateOld);
+      }
+
+      // Add new token
+      validTokens.push({
+        token,
+        expiresAt,
+        createdAt: new Date().toISOString(),
+      });
 
       const updatedAuthData = {
         ...authData,
-        refreshTokens: [
-          ...authData.refreshTokens.filter(rt => new Date(rt.expiresAt) > new Date()),
-          {
-            token,
-            expiresAt,
-            createdAt: new Date().toISOString(),
-          }
-        ]
+        refreshTokens: validTokens
       };
 
-      await this.ctx.storage.put(`auth:${email}`, updatedAuthData);
-      return true;
-    } catch {
-      return false;
+      await this.state.storage.put(`auth:${email}`, updatedAuthData);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Token storage failed' };
     }
   }
 
   // Validate refresh token
   async validateRefreshToken(email: string, token: string): Promise<boolean> {
     try {
-      const authData = await this.ctx.storage.get<AuthData>(`auth:${email}`);
+      const authData = await this.state.storage.get(`auth:${email}`) as AuthData;
       if (!authData) return false;
 
       const validToken = authData.refreshTokens.find(
@@ -270,7 +286,7 @@ export class UserProfileDO {
   // Revoke refresh token
   async revokeRefreshToken(email: string, token: string): Promise<boolean> {
     try {
-      const authData = await this.ctx.storage.get<AuthData>(`auth:${email}`);
+      const authData = await this.state.storage.get(`auth:${email}`) as AuthData;
       if (!authData) return false;
 
       const updatedAuthData = {
@@ -278,7 +294,7 @@ export class UserProfileDO {
         refreshTokens: authData.refreshTokens.filter(rt => rt.token !== token)
       };
 
-      await this.ctx.storage.put(`auth:${email}`, updatedAuthData);
+      await this.state.storage.put(`auth:${email}`, updatedAuthData);
       return true;
     } catch {
       return false;
@@ -291,20 +307,21 @@ export class UserProfileDO {
     error?: string;
   }> {
     try {
-      const authData = await this.ctx.storage.get<AuthData>(`auth:${email}`);
+      const authData = await this.state.storage.get(`auth:${email}`) as AuthData;
       if (!authData) {
         return { success: false, error: 'User not found' };
       }
 
       // Verify current password
-      const isValidPassword = await bcrypt.compare(currentPassword, authData.passwordHash);
+      const hashedCurrentPassword = await this.hashPassword(currentPassword, authData.salt);
+      const isValidPassword = hashedCurrentPassword === authData.passwordHash;
       if (!isValidPassword) {
         return { success: false, error: 'Current password is incorrect' };
       }
 
       // Hash new password
-      const salt = await bcrypt.genSalt(12);
-      const passwordHash = await bcrypt.hash(newPassword, salt);
+      const salt = this.generateSalt();
+      const passwordHash = await this.hashPassword(newPassword, salt);
 
       const updatedAuthData = {
         ...authData,
@@ -313,7 +330,7 @@ export class UserProfileDO {
         refreshTokens: [], // Invalidate all refresh tokens
       };
 
-      await this.ctx.storage.put(`auth:${email}`, updatedAuthData);
+      await this.state.storage.put(`auth:${email}`, updatedAuthData);
       return { success: true };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Password change failed' };
@@ -323,16 +340,100 @@ export class UserProfileDO {
   // Delete user (GDPR compliance)
   async deleteUser(email: string): Promise<boolean> {
     try {
-      const userProfile = await this.ctx.storage.get<UserProfile>(`profile:${email}`);
+      const userProfile = await this.state.storage.get(`profile:${email}`) as UserProfile;
       if (!userProfile) return false;
 
-      await this.ctx.storage.delete(`profile:${email}`);
-      await this.ctx.storage.delete(`auth:${email}`);
-      await this.ctx.storage.delete(`user:${userProfile.id}`);
+      await this.state.storage.delete(`profile:${email}`);
+      await this.state.storage.delete(`auth:${email}`);
+      await this.state.storage.delete(`user:${userProfile.id}`);
 
       return true;
     } catch {
       return false;
+    }
+  }
+
+  // Generate password reset token
+  async generatePasswordResetToken(email: string): Promise<{
+    success: boolean;
+    resetToken?: string;
+    error?: string;
+  }> {
+    try {
+      const userProfile = await this.state.storage.get(`profile:${email}`) as UserProfile;
+      if (!userProfile) {
+        return { success: false, error: 'User not found' };
+      }
+
+      const resetToken = crypto.randomUUID();
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
+
+      await this.state.storage.put(`reset:${resetToken}`, {
+        email,
+        expiresAt,
+        createdAt: new Date().toISOString(),
+      });
+
+      return { success: true, resetToken };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Reset token generation failed' };
+    }
+  }
+
+  // Validate refresh token by token only
+  async validateRefreshTokenByToken(token: string): Promise<{
+    valid: boolean;
+    email?: string;
+    error?: string;
+  }> {
+    try {
+      // Get all auth data to find the token
+      const allKeys = await this.state.storage.list({ prefix: 'auth:' });
+      
+      for (const [key, authData] of allKeys) {
+        const data = authData as AuthData;
+        const validToken = data.refreshTokens.find(
+          rt => rt.token === token && new Date(rt.expiresAt) > new Date()
+        );
+        
+        if (validToken) {
+          return { valid: true, email: data.email };
+        }
+      }
+      
+      return { valid: false, error: 'Invalid or expired token' };
+    } catch (error) {
+      return { valid: false, error: error instanceof Error ? error.message : 'Token validation failed' };
+    }
+  }
+
+  // Invalidate refresh token
+  async invalidateRefreshToken(token: string): Promise<{
+    success: boolean;
+    error?: string;
+  }> {
+    try {
+      // Get all auth data to find and remove the token
+      const allKeys = await this.state.storage.list({ prefix: 'auth:' });
+      
+      for (const [key, authData] of allKeys) {
+        const data = authData as AuthData;
+        const tokenIndex = data.refreshTokens.findIndex(rt => rt.token === token);
+        
+        if (tokenIndex !== -1) {
+          const updatedAuthData = {
+            ...data,
+            refreshTokens: data.refreshTokens.filter(rt => rt.token !== token)
+          };
+          
+          await this.state.storage.put(key, updatedAuthData);
+          return { success: true };
+        }
+      }
+      
+      return { success: false, error: 'Token not found' };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Token invalidation failed' };
     }
   }
 
@@ -344,13 +445,19 @@ export class UserProfileDO {
     try {
       switch (`${method} ${url.pathname}`) {
         case 'POST /create': {
-          const userData = await request.json();
+          const userData = await request.json() as {
+            email: string;
+            password: string;
+            firstName: string;
+            lastName: string;
+            phoneNumber?: string;
+          };
           const result = await this.createUser(userData);
           return Response.json(result);
         }
 
         case 'POST /authenticate': {
-          const { email, password } = await request.json();
+          const { email, password } = await request.json() as { email: string; password: string };
           const result = await this.authenticateUser(email, password);
           return Response.json(result);
         }
@@ -365,25 +472,41 @@ export class UserProfileDO {
         }
 
         case 'PUT /profile': {
-          const { email, updates } = await request.json();
+          const { email, updates } = await request.json() as { email: string; updates: Partial<UserProfile> };
           const result = await this.updateUserProfile(email, updates);
           return Response.json(result);
         }
 
         case 'POST /refresh-token': {
-          const { email, token, expiresAt } = await request.json();
-          const success = await this.storeRefreshToken(email, token, expiresAt);
-          return Response.json({ success });
+          const { email, token, expiresAt, invalidateOld } = await request.json() as { email: string; token: string; expiresAt: string; invalidateOld?: string };
+          const result = await this.storeRefreshToken(email, token, expiresAt, invalidateOld);
+          return Response.json(result);
         }
 
         case 'POST /validate-refresh-token': {
-          const { email, token } = await request.json();
-          const valid = await this.validateRefreshToken(email, token);
-          return Response.json({ valid });
+          const { token } = await request.json() as { token: string };
+          const result = await this.validateRefreshTokenByToken(token);
+          return Response.json(result);
+        }
+
+        case 'POST /invalidate-token': {
+          const { token } = await request.json() as { token: string };
+          const result = await this.invalidateRefreshToken(token);
+          return Response.json(result);
+        }
+
+        case 'POST /forgot-password': {
+          const { email } = await request.json() as { email: string };
+          const result = await this.generatePasswordResetToken(email);
+          return Response.json(result);
         }
 
         case 'POST /change-password': {
-          const { email, currentPassword, newPassword } = await request.json();
+          const { email, currentPassword, newPassword } = await request.json() as {
+            email: string;
+            currentPassword: string;
+            newPassword: string;
+          };
           const result = await this.changePassword(email, currentPassword, newPassword);
           return Response.json(result);
         }

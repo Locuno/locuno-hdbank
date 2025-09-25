@@ -9,10 +9,12 @@ import { userRoutes } from './routes/users';
 import { accountRoutes } from './routes/accounts';
 import { transactionRoutes } from './routes/transactions';
 import { healthRoutes } from './routes/health';
+import { UserProfileDO } from './durable-objects/UserProfileDO';
 
 // Define Cloudflare Worker environment
 type Bindings = {
   CACHE?: any; // KV namespace for caching
+  USER_PROFILE_DO: any; // Durable Object namespace
   JWT_SECRET?: string;
   DATABASE_URL?: string;
 };
@@ -60,4 +62,7 @@ app.get('/health', (c) => {
 app.onError(errorHandler);
 
 // Export the app for Cloudflare Workers
+// Export Durable Object class for Cloudflare Workers
+export { UserProfileDO };
+
 export default app;
