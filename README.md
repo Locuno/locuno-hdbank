@@ -41,14 +41,7 @@ locuno-hdbank/
 └── deployment.md          # Deployment guide
 ```
 
-## 🔒 Security
 
-This application handles sensitive financial data. Please review our security guidelines in [docs/security/README.md](./docs/security/README.md).
-
-
-## 📄 License
-
-This project is proprietary software owned by Locuno.
 
 ## Locuno: Kiến tạo Niềm tin cho Gia đình và Cộng đồng Việt Nam
 
@@ -151,5 +144,13 @@ Locuno is designed not as a standalone product, but as a loyalty operating syste
 
 With a team that combines deep experience in building enterprise-grade technology and scaling market-leading operations, we are uniquely positioned to execute this vision. We are not just building an app; we are building the digital trust infrastructure for the next generation of Vietnamese society. Our ask is simple: a pilot program within the Sovico ecosystem to demonstrate that safety, transparency, and trust are the most potent and untapped drivers of growth and loyalty in the modern economy.
 
+## 🔒 Security
+
+This application handles sensitive financial data. Please review our security guidelines in [docs/security/README.md](./docs/security/README.md).
+
+
+## 📄 License
+
+This project is proprietary software owned by Locuno.
 
 Join us at: https://locuno.com 
