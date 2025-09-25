@@ -1,0 +1,48 @@
+{
+  "name": "locuno-hdbank",
+  "version": "1.0.0",
+  "description": "HD Bank Digital Banking Platform - Monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "pnpm run --parallel dev",
+    "build": "pnpm run --recursive build",
+    "test": "pnpm run --recursive test",
+    "lint": "pnpm run --recursive lint",
+    "clean": "pnpm run --recursive clean",
+    "deploy:dev": "pnpm run build && ./scripts/deploy-dev.sh",
+    "deploy:staging": "pnpm run build && ./scripts/deploy-staging.sh",
+    "deploy:prod": "pnpm run build && ./scripts/deploy-prod.sh",
+    "setup": "./scripts/setup.sh",
+    "db:migrate": "cd apps/backend && pnpm run db:migrate",
+    "db:seed": "cd apps/backend && pnpm run db:seed"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-react": "^7.33.0",
+    "husky": "^8.0.0",
+    "lint-staged": "^14.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0",
+  "keywords": [
+    "banking",
+    "fintech",
+    "digital-banking",
+    "hdbank",
+    "monorepo"
+  ],
+  "author": "HD Bank Development Team",
+  "license": "PROPRIETARY"
+}

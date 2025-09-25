@@ -1,0 +1,34 @@
+{
+  "name": "@locuno-hdbank/frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "clean": "rm -rf .next out",
+    "export": "next build && next export"
+  },
+  "dependencies": {
+    "next": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "@tanstack/react-router": "^1.0.0",
+    "axios": "catalog:",
+    "tailwindcss": "catalog:",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0",
+    "zod": "catalog:",
+    "@locuno-hdbank/shared": "workspace:*",
+    "@locuno-hdbank/ui": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "typescript": "catalog:",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "^14.0.0"
+  }
+}

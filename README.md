@@ -22,7 +22,7 @@ This is a monorepo containing:
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone [<repository-url>](https://github.com/Locuno/locuno-hdbank)
 cd locuno-hdbank
 
 # Install dependencies
