@@ -13,6 +13,21 @@ name = "USER_PROFILE_DO"
 class_name = "UserProfileDO"
 script_name = "hdbank-backend-prod"
 
+[[env.production.durable_objects.bindings]]
+name = "FAMILY_DO"
+class_name = "FamilyDO"
+script_name = "hdbank-backend-prod"
+
+[[env.production.durable_objects.bindings]]
+name = "COMMUNITY_WALLET_DO"
+class_name = "CommunityWalletDO"
+script_name = "hdbank-backend-prod"
+
+[[env.production.durable_objects.bindings]]
+name = "SMART_REWARDS_DO"
+class_name = "SmartRewardsDO"
+script_name = "hdbank-backend-prod"
+
 [env.staging]
 name = "hdbank-backend-staging"
 vars = { ENVIRONMENT = "staging" }
@@ -22,11 +37,46 @@ name = "USER_PROFILE_DO"
 class_name = "UserProfileDO"
 script_name = "hdbank-backend-staging"
 
+[[env.staging.durable_objects.bindings]]
+name = "FAMILY_DO"
+class_name = "FamilyDO"
+script_name = "hdbank-backend-staging"
+
+[[env.staging.durable_objects.bindings]]
+name = "COMMUNITY_WALLET_DO"
+class_name = "CommunityWalletDO"
+script_name = "hdbank-backend-staging"
+
+[[env.staging.durable_objects.bindings]]
+name = "SMART_REWARDS_DO"
+class_name = "SmartRewardsDO"
+script_name = "hdbank-backend-staging"
+
 # Durable Objects
 [[durable_objects.bindings]]
 name = "USER_PROFILE_DO"
 class_name = "UserProfileDO"
-script_name = "hdbank-backend"
+
+[[durable_objects.bindings]]
+name = "FAMILY_DO"
+class_name = "FamilyDO"
+
+[[durable_objects.bindings]]
+name = "COMMUNITY_WALLET_DO"
+class_name = "CommunityWalletDO"
+
+[[durable_objects.bindings]]
+name = "SMART_REWARDS_DO"
+class_name = "SmartRewardsDO"
+
+# Durable Object Migrations
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["UserProfileDO"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["FamilyDO", "CommunityWalletDO", "SmartRewardsDO"]
 
 # KV Namespaces for caching
 [[kv_namespaces]]
@@ -43,7 +93,7 @@ preview_id = "your-preview-kv-namespace-id"
 # Environment variables (use wrangler secret for sensitive data)
 [vars]
 NODE_ENV = "development"
-CORS_ORIGIN = "https://hdbank.pages.dev"
+CORS_ORIGIN = "https://22140156.locuno-hdbank-frontend.pages.dev"
 JWT_SECRET = "your-super-secret-jwt-key-change-this-in-production"
 JWT_EXPIRES_IN = "24h"
 BCRYPT_ROUNDS = "12"

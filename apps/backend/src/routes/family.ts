@@ -7,7 +7,7 @@ const family = new Hono();
 // JWT middleware for all family routes
 family.use('*', async (c, next) => {
   const jwtMiddleware = jwt({
-    secret: c.env.JWT_SECRET || 'fallback-secret',
+    secret: c.env?.JWT_SECRET || 'fallback-secret',
   });
   return jwtMiddleware(c, next);
 });
@@ -79,7 +79,7 @@ family.get('/circles/:familyId', async (c) => {
       return c.json({ success: false, message: 'Family not found' }, 404);
     }
 
-    const isMember = memberResult.members.some(member => 
+    const isMember = memberResult.members.some((member: any) => 
       member.userId === userId && member.status === 'active'
     );
 
@@ -176,7 +176,7 @@ family.get('/circles/:familyId/members', async (c) => {
       return c.json({ success: false, message: 'Family not found' }, 404);
     }
 
-    const isMember = memberResult.members.some(member => 
+    const isMember = memberResult.members.some((member: any) => 
       member.userId === userId && member.status === 'active'
     );
 
@@ -245,7 +245,7 @@ family.get('/circles/:familyId/locations', async (c) => {
       return c.json({ success: false, message: 'Family not found' }, 404);
     }
 
-    const isMember = memberResult.members.some(member => 
+    const isMember = memberResult.members.some((member: any) => 
       member.userId === userId && member.status === 'active'
     );
 
@@ -320,7 +320,7 @@ family.get('/circles/:familyId/wellness', async (c) => {
       return c.json({ success: false, message: 'Family not found' }, 404);
     }
 
-    const isMember = memberResult.members.some(member => 
+    const isMember = memberResult.members.some((member: any) => 
       member.userId === userId && member.status === 'active'
     );
 
@@ -424,7 +424,7 @@ family.get('/circles/:familyId/sos', async (c) => {
       return c.json({ success: false, message: 'Family not found' }, 404);
     }
 
-    const isMember = memberResult.members.some(member => 
+    const isMember = memberResult.members.some((member: any) => 
       member.userId === userId && member.status === 'active'
     );
 
@@ -439,7 +439,7 @@ family.get('/circles/:familyId/sos', async (c) => {
       
       // Filter by status if provided
       if (status) {
-        sosAlerts = sosAlerts.filter(sos => sos.status === status);
+        sosAlerts = sosAlerts.filter((sos: any) => sos.status === status);
       }
 
       return c.json({

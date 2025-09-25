@@ -9,12 +9,21 @@ import { userRoutes } from './routes/users';
 import { accountRoutes } from './routes/accounts';
 import { transactionRoutes } from './routes/transactions';
 import { healthRoutes } from './routes/health';
+import { family } from './routes/family';
+import { wallet } from './routes/wallet';
+import { rewards } from './routes/rewards';
 import { UserProfileDO } from './durable-objects/UserProfileDO';
+import { FamilyDO } from './durable-objects/FamilyDO';
+import { CommunityWalletDO } from './durable-objects/CommunityWalletDO';
+import { SmartRewardsDO } from './durable-objects/SmartRewardsDO';
 
 // Define Cloudflare Worker environment
 type Bindings = {
   CACHE?: any; // KV namespace for caching
   USER_PROFILE_DO: any; // Durable Object namespace
+  FAMILY_DO: any; // Family Durable Object namespace
+  COMMUNITY_WALLET_DO: any; // Community Wallet Durable Object namespace
+  SMART_REWARDS_DO: any; // Smart Rewards Durable Object namespace
   JWT_SECRET?: string;
   DATABASE_URL?: string;
 };
@@ -45,6 +54,9 @@ app.route('/api/auth', authRoutes);
 app.route('/api/users', userRoutes);
 app.route('/api/accounts', accountRoutes);
 app.route('/api/transactions', transactionRoutes);
+app.route('/api/family', family);
+app.route('/api/wallet', wallet);
+app.route('/api/rewards', rewards);
 
 // Health check endpoint (for load balancers)
 app.get('/health', (c) => {
@@ -63,6 +75,6 @@ app.onError(errorHandler);
 
 // Export the app for Cloudflare Workers
 // Export Durable Object class for Cloudflare Workers
-export { UserProfileDO };
+export { UserProfileDO, FamilyDO, CommunityWalletDO, SmartRewardsDO };
 
 export default app;
