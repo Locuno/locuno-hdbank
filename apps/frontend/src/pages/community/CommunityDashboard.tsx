@@ -13,8 +13,14 @@ import {
   XCircle,
   DollarSign,
   FileText,
-  Eye
+  Eye,
+  QrCode,
+  Link,
+
 } from 'lucide-react';
+import { CreateCommunityModal } from '@/components/CreateCommunityModal';
+import { QRCodeModal } from '@/components/QRCodeModal';
+import { CreateProposalModal } from '@/components/CreateProposalModal';
 
 interface CommunityGroup {
   id: string;
@@ -23,6 +29,9 @@ interface CommunityGroup {
   members: number;
   balance: number;
   currency: string;
+  description?: string;
+  joinLink?: string;
+  walletId?: string;
 }
 
 interface Proposal {
@@ -49,7 +58,10 @@ const mockCommunityGroups: CommunityGroup[] = [
     type: 'apartment',
     members: 45,
     balance: 125000000,
-    currency: 'VND'
+    currency: 'VND',
+    description: 'Quỹ chung cư tòa P1 để chi trả các khoản bảo trì và sửa chữa',
+    joinLink: `${window.location.origin}/community/join/1`,
+    walletId: 'apt_vinhomes_p1_240125'
   },
   {
     id: '2',
@@ -57,7 +69,10 @@ const mockCommunityGroups: CommunityGroup[] = [
     type: 'school',
     members: 32,
     balance: 15000000,
-    currency: 'VND'
+    currency: 'VND',
+    description: 'Quỹ lớp 10A1 cho các hoạt động ngoại khóa và sinh nhật tập thể',
+    joinLink: `${window.location.origin}/community/join/2`,
+    walletId: 'sch_lequydon_10a1_240120'
   }
 ];
 
@@ -120,11 +135,37 @@ const getStatusText = (status: string) => {
 
 export function CommunityDashboard() {
   const [selectedGroup, setSelectedGroup] = useState<string>(mockCommunityGroups[0].id);
-  const currentGroup = mockCommunityGroups.find(g => g.id === selectedGroup);
+  const [communityGroups, setCommunityGroups] = useState<CommunityGroup[]>(mockCommunityGroups);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [copiedLink, setCopiedLink] = useState<string | null>(null);
+  
+  const currentGroup = communityGroups.find(g => g.id === selectedGroup);
 
   const getVotePercentage = (proposal: Proposal) => {
     const requiredVotes = Math.ceil(currentGroup!.members * 2 / 3);
     return (proposal.votes.approve / requiredVotes) * 100;
+  };
+
+  const handleCommunityCreated = (newCommunity: CommunityGroup) => {
+    setCommunityGroups(prev => [...prev, newCommunity]);
+    setSelectedGroup(newCommunity.id);
+  };
+
+  const copyJoinLink = async (link: string) => {
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopiedLink(link);
+      setTimeout(() => setCopiedLink(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy link:', err);
+    }
+  };
+
+  const openDepositQR = () => {
+    if (currentGroup?.walletId) {
+      setShowQRModal(true);
+    }
   };
 
   return (
@@ -139,6 +180,14 @@ export function CommunityDashboard() {
           <Button variant="outline" size="sm">
             <Settings className="w-4 h-4 mr-2" />
             Cài đặt
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowCreateModal(true)}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Tạo cộng đồng
           </Button>
           <Button size="sm" className="bg-orange-600 hover:bg-orange-700">
             <Plus className="w-4 h-4 mr-2" />
@@ -155,35 +204,71 @@ export function CommunityDashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {mockCommunityGroups.map((group) => (
+            {communityGroups.map((group) => (
               <Card
                 key={group.id}
-                className={`cursor-pointer transition-all ${
+                className={`transition-all ${
                   selectedGroup === group.id ? 'ring-2 ring-orange-500 bg-orange-50' : 'hover:shadow-md'
                 }`}
-                onClick={() => setSelectedGroup(group.id)}
               >
                 <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="font-semibold text-sm">{group.name}</h3>
-                    <span className="text-xs bg-gray-100 px-2 py-1 rounded">
-                      {group.type === 'apartment' ? 'Chung cư' : 
-                       group.type === 'school' ? 'Trường học' : 'Khu phố'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center space-x-4 text-sm">
-                      <div className="flex items-center space-x-1">
-                        <Users className="w-4 h-4 text-gray-500" />
-                        <span>{group.members} thành viên</span>
+                  <div 
+                    className="cursor-pointer"
+                    onClick={() => setSelectedGroup(group.id)}
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="font-semibold text-sm">{group.name}</h3>
+                      <span className="text-xs bg-gray-100 px-2 py-1 rounded">
+                        {group.type === 'apartment' ? 'Chung cư' : 
+                         group.type === 'school' ? 'Trường học' : 'Khu phố'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center mb-3">
+                      <div className="flex items-center space-x-4 text-sm">
+                        <div className="flex items-center space-x-1">
+                          <Users className="w-4 h-4 text-gray-500" />
+                          <span>{group.members} thành viên</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-green-600">
+                          {formatCurrency(group.balance, group.currency)}
+                        </p>
+                        <p className="text-xs text-gray-500">Số dư hiện tại</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-green-600">
-                        {formatCurrency(group.balance, group.currency)}
-                      </p>
-                      <p className="text-xs text-gray-500">Số dư hiện tại</p>
-                    </div>
+                  </div>
+                  
+                  {/* Action Buttons */}
+                  <div className="flex space-x-2 pt-3 border-t">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (group.joinLink) copyJoinLink(group.joinLink);
+                      }}
+                    >
+                      {copiedLink === group.joinLink ? (
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                      ) : (
+                        <Link className="w-3 h-3 mr-1" />
+                      )}
+                      {copiedLink === group.joinLink ? 'Đã sao chép' : 'Link tham gia'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="flex-1 bg-green-600 hover:bg-green-700"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedGroup(group.id);
+                        openDepositQR();
+                      }}
+                    >
+                      <QrCode className="w-3 h-3 mr-1" />
+                      Nạp tiền
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -396,6 +481,21 @@ export function CommunityDashboard() {
           </div>
         </CardContent>
       </Card>
+      
+      {/* Modals */}
+      <CreateCommunityModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCommunityCreated={handleCommunityCreated}
+      />
+      
+      <QRCodeModal
+        isOpen={showQRModal}
+        onClose={() => setShowQRModal(false)}
+        walletId={currentGroup?.walletId || ''}
+        amount={100000}
+        title={`Nạp tiền vào ${currentGroup?.name}`}
+      />
     </div>
   );
 }

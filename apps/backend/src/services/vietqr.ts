@@ -132,6 +132,23 @@ export const VIETNAMESE_BANKS: Bank[] = [
   }
 ];
 
+// Default bank account configuration
+export const DEFAULT_BANK_ACCOUNT = {
+  bankCode: 'VPB',
+  accountNo: '0898698288',
+  accountName: 'HDBANK SYSTEM',
+  bankInfo: {
+    id: 10,
+    name: "Ngân hàng TMCP Việt Nam Thịnh Vượng",
+    code: "VPB",
+    bin: "970432",
+    shortName: "VPBank",
+    logo: "https://api.vietqr.io/img/VPB.png",
+    transferSupported: 1,
+    lookupSupported: 1
+  }
+};
+
 export class VietQRService {
   /**
    * Find bank by BIN code or bank code
@@ -273,20 +290,56 @@ export class VietQRService {
   }
 
   /**
+   * Get default bank account configuration
+   */
+  static getDefaultBankAccount() {
+    return DEFAULT_BANK_ACCOUNT;
+  }
+
+  /**
+   * Generate QR code using default bank account
+   * Convenience method for quick QR generation
+   */
+  static generateDefaultQR({
+    walletId,
+    amount,
+    template = 'compact'
+  }: {
+    walletId: string;
+    amount?: number;
+    template?: string;
+  }): VietQRResponse {
+    const params: {
+      walletId: string;
+      template: string;
+      amount?: number;
+    } = {
+      walletId,
+      template
+    };
+    
+    if (amount !== undefined) {
+      params.amount = amount;
+    }
+    
+    return this.generateQRForWallet(params);
+  }
+
+  /**
    * Generate QR code for a specific wallet ID with transfer note
    * This is a convenience method for the HDBank application
    */
   static generateQRForWallet({
     walletId,
-    bankCode = 'VCB', // Default to Vietcombank
-    accountNo,
-    accountName,
+    bankCode = DEFAULT_BANK_ACCOUNT.bankCode, // Default to VPBank
+    accountNo = DEFAULT_BANK_ACCOUNT.accountNo, // Default account
+    accountName = DEFAULT_BANK_ACCOUNT.accountName,
     amount,
     template = 'compact'
   }: {
     walletId: string;
     bankCode?: string;
-    accountNo: string;
+    accountNo?: string;
     accountName?: string;
     amount?: number;
     template?: string;

@@ -1,6 +1,6 @@
 // VietQR API Routes for generating QR codes
 import { Hono } from 'hono';
-import { VietQRService, type VietQRRequest, type Bank } from '../services/vietqr';
+import { VietQRService, type VietQRRequest, type Bank, DEFAULT_BANK_ACCOUNT } from '../services/vietqr';
 
 const vietqr = new Hono();
 
@@ -188,6 +188,84 @@ vietqr.post('/wallet', async (c) => {
 });
 
 /**
+ * GET /api/vietqr/default
+ * Get default bank account configuration
+ */
+vietqr.get('/default', async (c) => {
+  try {
+    const defaultAccount = VietQRService.getDefaultBankAccount();
+    return c.json({
+      success: true,
+      data: defaultAccount
+    });
+  } catch (error) {
+    return c.json({
+      success: false,
+      error: 'Failed to fetch default bank account'
+    }, 500);
+  }
+});
+
+/**
+ * POST /api/vietqr/default
+ * Generate QR code using default bank account
+ * 
+ * Body:
+ * {
+ *   "walletId": "family123",       // Wallet ID (used as transfer note)
+ *   "amount": 100000,             // Optional: Amount in VND
+ *   "template": "compact"         // Optional: QR template
+ * }
+ */
+vietqr.post('/default', async (c) => {
+  try {
+    const body = await c.req.json();
+    
+    // Validate required fields
+    if (!body.walletId) {
+      return c.json({
+        success: false,
+        error: 'Wallet ID is required'
+      }, 400);
+    }
+
+    // Generate QR code using default account
+    const result = VietQRService.generateDefaultQR({
+      walletId: body.walletId,
+      amount: body.amount,
+      template: body.template || 'compact'
+    });
+    
+    if (!result.success) {
+      return c.json(result, 400);
+    }
+
+    return c.json({
+      success: true,
+      data: {
+        qrCodeUrl: result.qrCodeUrl,
+        qrDataUrl: result.qrDataUrl,
+        walletId: body.walletId,
+        defaultAccount: DEFAULT_BANK_ACCOUNT,
+        requestInfo: {
+          accountNo: DEFAULT_BANK_ACCOUNT.accountNo,
+          accountName: DEFAULT_BANK_ACCOUNT.accountName,
+          bankCode: DEFAULT_BANK_ACCOUNT.bankCode,
+          amount: body.amount,
+          transferNote: body.walletId,
+          template: body.template || 'compact'
+        }
+      }
+    });
+  } catch (error) {
+    return c.json({
+      success: false,
+      error: 'Invalid request body or failed to generate QR code'
+    }, 400);
+  }
+});
+
+/**
  * GET /api/vietqr/health
  * Health check endpoint
  */
@@ -196,7 +274,11 @@ vietqr.get('/health', async (c) => {
     success: true,
     message: 'VietQR service is running',
     timestamp: new Date().toISOString(),
-    supportedBanks: VietQRService.getSupportedBanks().length
+    supportedBanks: VietQRService.getSupportedBanks().length,
+    defaultAccount: {
+      bank: DEFAULT_BANK_ACCOUNT.bankInfo.shortName,
+      accountNo: DEFAULT_BANK_ACCOUNT.accountNo
+    }
   });
 });
 

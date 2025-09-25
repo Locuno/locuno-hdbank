@@ -21,7 +21,10 @@ import {
   Sparkles,
   Flame,
   Timer,
-  Percent
+  Percent,
+  Wallet,
+  Gavel,
+
 } from 'lucide-react';
 
 interface UserPoints {
@@ -49,6 +52,11 @@ interface Deal {
   isLimited?: boolean;
   discount?: number;
   brandLogo?: string;
+  isAuction?: boolean;
+  auctionStartPrice?: number;
+  currentBid?: number;
+  auctionEndTime?: string;
+  bidCount?: number;
 }
 
 interface Achievement {
@@ -86,7 +94,12 @@ const mockDeals: Deal[] = [
     image: '✈️',
     isHot: true,
     discount: 28,
-    brandLogo: '🟠'
+    brandLogo: '🟠',
+    isAuction: true,
+    auctionStartPrice: 1000,
+    currentBid: 1250000,
+    auctionEndTime: '2024-01-28T23:59:59',
+    bidCount: 47
   },
   {
     id: '2',
@@ -135,7 +148,12 @@ const mockDeals: Deal[] = [
     image: '💳',
     isHot: true,
     discount: 100,
-    brandLogo: '🔵'
+    brandLogo: '🔵',
+    isAuction: true,
+    auctionStartPrice: 1000,
+    currentBid: 15000,
+    auctionEndTime: '2024-01-30T18:00:00',
+    bidCount: 23
   },
   {
     id: '5',
@@ -199,7 +217,12 @@ const mockDeals: Deal[] = [
     image: '🏖️',
     isHot: true,
     discount: 29,
-    brandLogo: '🟢'
+    brandLogo: '🟢',
+    isAuction: true,
+    auctionStartPrice: 1000,
+    currentBid: 2800000,
+    auctionEndTime: '2024-01-29T20:00:00',
+    bidCount: 89
   },
 
   // VinFast - Transportation
@@ -404,6 +427,61 @@ export function RewardsPage() {
         </div>
       </div>
 
+      {/* Hot Auction Deals */}
+      <Card className="bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 text-white overflow-hidden relative">
+        <div className="absolute inset-0 bg-black opacity-10"></div>
+        <CardHeader className="relative z-10">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="bg-white bg-opacity-20 p-3 rounded-full">
+                <Gavel className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <CardTitle className="text-2xl font-bold text-white">🔥 Đấu giá HOT - Bắt đầu từ 1,000 VND</CardTitle>
+                <CardDescription className="text-yellow-100">
+                  Cơ hội sở hữu deal độc quyền với giá không thể tin được!
+                </CardDescription>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-sm text-yellow-100">Đang diễn ra</div>
+              <div className="text-lg font-bold text-white animate-pulse">
+                {filteredDeals.filter(deal => deal.isAuction).length} cuộc đấu giá
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {filteredDeals.filter(deal => deal.isAuction).slice(0, 3).map((deal) => (
+              <div key={deal.id} className="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-4 border border-white border-opacity-20">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-2xl">{deal.image}</span>
+                  <div className="bg-white bg-opacity-20 px-2 py-1 rounded-full">
+                    <span className="text-xs font-bold text-white">{deal.brand}</span>
+                  </div>
+                </div>
+                <h4 className="font-bold text-white mb-1 text-sm">{deal.title}</h4>
+                <div className="flex items-center justify-between text-xs text-yellow-100 mb-2">
+                  <span>Giá hiện tại:</span>
+                  <span className="font-bold text-white">{formatCurrency(deal.currentBid || 1000)}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center space-x-1">
+                    <TrendingUp className="w-3 h-3" />
+                    <span>{deal.bidCount || 0} lượt đấu</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Timer className="w-3 h-3" />
+                    <span>Còn {Math.ceil((new Date(deal.auctionEndTime || '').getTime() - new Date().getTime()) / (1000 * 60 * 60))}h</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Points Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
@@ -595,7 +673,13 @@ export function RewardsPage() {
               <Card key={deal.id} className="hover:shadow-xl hover:scale-105 transition-all duration-300 relative overflow-hidden group">
                 {/* Special Badges */}
                 <div className="absolute top-2 left-2 z-10 flex flex-col space-y-1">
-                  {deal.isHot && (
+                  {deal.isAuction && (
+                    <div className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center space-x-1 animate-bounce">
+                      <Gavel className="w-3 h-3" />
+                      <span>ĐẤU GIÁ</span>
+                    </div>
+                  )}
+                  {deal.isHot && !deal.isAuction && (
                     <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center space-x-1 animate-pulse">
                       <Flame className="w-3 h-3" />
                       <span>HOT</span>
@@ -639,23 +723,52 @@ export function RewardsPage() {
                     <p className="text-sm text-gray-600 mb-4 line-clamp-2">{deal.description}</p>
 
                     <div className="space-y-3 mb-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500 line-through">{formatCurrency(deal.originalPrice)}</span>
-                        <span className="text-xl font-bold text-green-600 group-hover:text-green-700 transition-colors">
-                          {formatCurrency(deal.discountPrice)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-1 text-sm text-blue-600 font-medium">
-                          <Star className="w-4 h-4 fill-current" />
-                          <span>{deal.pointsRequired.toLocaleString()} điểm</span>
-                        </div>
-                        <div className="bg-gradient-to-r from-orange-100 to-red-100 px-2 py-1 rounded-full">
-                          <span className="text-sm text-orange-700 font-bold">
-                            Tiết kiệm {Math.round((1 - deal.discountPrice / deal.originalPrice) * 100)}%
-                          </span>
-                        </div>
-                      </div>
+                      {deal.isAuction ? (
+                        <>
+                          <div className="bg-gradient-to-r from-yellow-50 to-amber-50 p-3 rounded-lg border border-yellow-200">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-yellow-800">Giá khởi điểm</span>
+                              <span className="text-sm text-gray-500 line-through">{formatCurrency(deal.originalPrice)}</span>
+                            </div>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-lg font-bold text-yellow-700">Giá hiện tại</span>
+                              <span className="text-2xl font-bold text-green-600">
+                                {formatCurrency(deal.currentBid || deal.auctionStartPrice || 1000)}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center space-x-1 text-blue-600">
+                                <TrendingUp className="w-4 h-4" />
+                                <span>{deal.bidCount || 0} lượt đấu giá</span>
+                              </div>
+                              <div className="flex items-center space-x-1 text-red-600">
+                                <Timer className="w-4 h-4" />
+                                <span>Kết thúc: {new Date(deal.auctionEndTime || '').toLocaleDateString('vi-VN')}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-500 line-through">{formatCurrency(deal.originalPrice)}</span>
+                            <span className="text-xl font-bold text-green-600 group-hover:text-green-700 transition-colors">
+                              {formatCurrency(deal.discountPrice)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-1 text-sm text-blue-600 font-medium">
+                              <Wallet className="w-4 h-4" />
+                              <span>Ví gia đình/cộng đồng</span>
+                            </div>
+                            <div className="bg-gradient-to-r from-orange-100 to-red-100 px-2 py-1 rounded-full">
+                              <span className="text-sm text-orange-700 font-bold">
+                                Tiết kiệm {Math.round((1 - deal.discountPrice / deal.originalPrice) * 100)}%
+                              </span>
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </div>
 
                     <div className="flex items-center justify-between text-xs text-gray-500 mb-4 bg-gray-50 p-2 rounded-lg">
@@ -671,25 +784,30 @@ export function RewardsPage() {
                   </div>
 
                   <div className="p-4 pt-0">
-                    <Button
-                      className={`w-full font-bold transition-all duration-300 ${
-                        mockUserPoints.total >= deal.pointsRequired
-                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transform hover:-translate-y-1'
-                          : 'bg-gray-300 cursor-not-allowed'
-                      }`}
-                      disabled={mockUserPoints.total < deal.pointsRequired}
-                    >
-                      {mockUserPoints.total >= deal.pointsRequired ? (
-                        <div className="flex items-center justify-center space-x-2">
-                          <Zap className="w-4 h-4" />
-                          <span>Đổi ngay</span>
+                    {deal.isAuction ? (
+                      <div className="space-y-2">
+                        <Button
+                          className="w-full font-bold bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+                        >
+                          <div className="flex items-center justify-center space-x-2">
+                            <Gavel className="w-4 h-4" />
+                            <span>Đấu giá ngay</span>
+                          </div>
+                        </Button>
+                        <div className="text-xs text-center text-gray-500">
+                          Bắt đầu từ 1,000 VND
                         </div>
-                      ) : (
+                      </div>
+                    ) : (
+                      <Button
+                        className="w-full font-bold bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+                      >
                         <div className="flex items-center justify-center space-x-2">
-                          <span>Cần thêm {(deal.pointsRequired - mockUserPoints.total).toLocaleString()} điểm</span>
+                          <Wallet className="w-4 h-4" />
+                          <span>Mua bằng ví gia đình/cộng đồng</span>
                         </div>
-                      )}
-                    </Button>
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
