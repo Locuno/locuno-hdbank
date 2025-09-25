@@ -67,7 +67,7 @@ locuno-hdbank/
 ### Environment Setup
 
 1. Copy environment files:
-   ```bash
+```
 cp apps/frontend/.env.example apps/frontend/.env.local
    cp apps/backend/.env.example apps/backend/.env
 ```
