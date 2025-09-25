@@ -1,6 +1,10 @@
 
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { familyService, FamilyCircle, FamilyMember as ApiFamilyMember } from '@/lib/api/family';
+
 import {
   MapPin,
   Activity,
@@ -11,7 +15,9 @@ import {
   Settings,
   Moon,
   Footprints,
-  Clock
+  Clock,
+  Mail,
+  X
 } from 'lucide-react';
 
 interface FamilyMember {
@@ -73,27 +79,97 @@ const mockFamilyMembers: FamilyMember[] = [
   }
 ];
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'safe': return 'text-green-600 bg-green-100';
-    case 'active': return 'text-blue-600 bg-blue-100';
-    case 'sleeping': return 'text-purple-600 bg-purple-100';
-    case 'alert': return 'text-red-600 bg-red-100';
-    default: return 'text-gray-600 bg-gray-100';
-  }
-};
 
-const getStatusText = (status: string) => {
-  switch (status) {
-    case 'safe': return 'An toàn';
-    case 'active': return 'Đang hoạt động';
-    case 'sleeping': return 'Đang ngủ';
-    case 'alert': return 'Cảnh báo';
-    default: return 'Không rõ';
-  }
-};
 
 export function FamilyDashboard() {
+
+  const [currentFamily, setCurrentFamily] = useState<FamilyCircle | null>(null);
+  const [familyMembers, setFamilyMembers] = useState<ApiFamilyMember[]>([]);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState<'admin' | 'member'>('member');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  // Load user's families on component mount
+  useEffect(() => {
+    loadFamilies();
+  }, []);
+
+  // Load family members when current family changes
+  useEffect(() => {
+    if (currentFamily) {
+      loadFamilyMembers(currentFamily.id);
+    }
+  }, [currentFamily]);
+
+  const loadFamilies = async () => {
+    try {
+      const result = await familyService.getUserFamilies();
+      if (result.success && result.data) {
+        // Set the first family as current if available
+        if (result.data.families.length > 0) {
+          setCurrentFamily(result.data.families[0]);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load families:', error);
+    }
+  };
+
+  const loadFamilyMembers = async (familyId: string) => {
+    try {
+      const result = await familyService.getFamilyMembers(familyId);
+      if (result.success && result.data) {
+        setFamilyMembers(result.data.members);
+      }
+    } catch (error) {
+      console.error('Failed to load family members:', error);
+    }
+  };
+
+  const handleInviteMember = async () => {
+    if (!currentFamily || !inviteEmail.trim()) {
+      setError('Vui lòng nhập email hợp lệ');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await familyService.inviteMember(currentFamily.id, {
+        email: inviteEmail.trim(),
+        role: inviteRole,
+      });
+
+      if (result.success) {
+        setSuccess('Lời mời đã được gửi thành công!');
+        setInviteEmail('');
+        setShowInviteModal(false);
+        // Reload family members to show the invitation
+        loadFamilyMembers(currentFamily.id);
+      } else {
+        setError(result.message || 'Không thể gửi lời mời');
+      }
+    } catch (error) {
+      setError('Có lỗi xảy ra khi gửi lời mời');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Clear messages after 5 seconds
+  useEffect(() => {
+    if (error || success) {
+      const timer = setTimeout(() => {
+        setError(null);
+        setSuccess(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, success]);
 
   return (
     <div className="space-y-6">
@@ -182,7 +258,11 @@ export function FamilyDashboard() {
               <CardTitle>Thành viên gia đình</CardTitle>
               <CardDescription>Theo dõi vị trí và sức khỏe của từng thành viên</CardDescription>
             </div>
-            <Button variant="outline" size="sm">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowInviteModal(true)}
+            >
               <Plus className="w-4 h-4 mr-2" />
               Thêm thành viên
             </Button>
@@ -190,51 +270,70 @@ export function FamilyDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {mockFamilyMembers.map((member) => (
+            {familyMembers.length > 0 ? familyMembers.map((member) => (
               <div
-                key={member.id}
+                key={member.userId}
                 className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
               >
                 <div className="flex items-center space-x-4">
-                  <div className="text-3xl">{member.avatar}</div>
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Users className="w-6 h-6 text-blue-600" />
+                  </div>
                   <div>
-                    <h3 className="font-semibold">{member.name}</h3>
+                    <h3 className="font-semibold">
+                      {member.firstName && member.lastName
+                        ? `${member.firstName} ${member.lastName}`
+                        : member.email}
+                    </h3>
                     <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <MapPin className="w-4 h-4" />
-                      <span>{member.location}</span>
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        member.status === 'active' ? 'bg-green-100 text-green-800' :
+                        member.status === 'invited' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {member.status === 'active' ? 'Hoạt động' :
+                         member.status === 'invited' ? 'Đã mời' : 'Tạm dừng'}
+                      </span>
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        member.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
+                        {member.role === 'admin' ? 'Quản trị viên' : 'Thành viên'}
+                      </span>
                     </div>
                     <div className="flex items-center space-x-2 text-sm text-gray-500">
                       <Clock className="w-4 h-4" />
-                      <span>Cập nhật {member.lastSeen}</span>
+                      <span>Tham gia {new Date(member.joinedAt).toLocaleDateString('vi-VN')}</span>
                     </div>
                   </div>
                 </div>
                 
                 <div className="flex items-center space-x-4">
                   <div className="text-right">
-                    <div className="flex items-center space-x-4 text-sm">
+                    <div className="flex items-center space-x-2 text-sm text-gray-500">
+                      <span>Quyền hạn:</span>
                       <div className="flex items-center space-x-1">
-                        <Moon className="w-4 h-4 text-purple-600" />
-                        <span>{member.wellness.sleep}h</span>
+                        {member.permissions.canViewLocation && (
+                          <MapPin className="w-4 h-4 text-green-600" />
+                        )}
+                        {member.permissions.canReceiveAlerts && (
+                          <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                        )}
+                        {member.permissions.canManageMembers && (
+                          <Settings className="w-4 h-4 text-blue-600" />
+                        )}
                       </div>
-                      <div className="flex items-center space-x-1">
-                        <Footprints className="w-4 h-4 text-orange-600" />
-                        <span>{member.wellness.steps.toLocaleString()}</span>
-                      </div>
-                      {member.wellness.heartRate && (
-                        <div className="flex items-center space-x-1">
-                          <Activity className="w-4 h-4 text-red-600" />
-                          <span>{member.wellness.heartRate} bpm</span>
-                        </div>
-                      )}
                     </div>
-                  </div>
-                  <div className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(member.status)}`}>
-                    {getStatusText(member.status)}
                   </div>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="text-center py-8 text-gray-500">
+                <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p>Chưa có thành viên nào trong gia đình</p>
+                <p className="text-sm">Nhấn "Thêm thành viên" để mời người khác tham gia</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -287,6 +386,103 @@ export function FamilyDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Success/Error Messages */}
+      {error && (
+        <div className="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50">
+          <div className="flex items-center">
+            <AlertTriangle className="w-4 h-4 mr-2" />
+            {error}
+          </div>
+        </div>
+      )}
+
+      {success && (
+        <div className="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50">
+          <div className="flex items-center">
+            <Users className="w-4 h-4 mr-2" />
+            {success}
+          </div>
+        </div>
+      )}
+
+      {/* Invite Member Modal */}
+      {showInviteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Mời thành viên mới</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowInviteModal(false)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email người được mời
+                </label>
+                <Input
+                  type="email"
+                  placeholder="example@email.com"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Vai trò
+                </label>
+                <select
+                  value={inviteRole}
+                  onChange={(e) => setInviteRole(e.target.value as 'admin' | 'member')}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="member">Thành viên</option>
+                  <option value="admin">Quản trị viên</option>
+                </select>
+              </div>
+
+              <div className="text-sm text-gray-600">
+                <p><strong>Thành viên:</strong> Có thể xem thông tin gia đình và nhận cảnh báo</p>
+                <p><strong>Quản trị viên:</strong> Có thể quản lý thành viên và cài đặt gia đình</p>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <Button
+                variant="outline"
+                onClick={() => setShowInviteModal(false)}
+                disabled={isLoading}
+              >
+                Hủy
+              </Button>
+              <Button
+                onClick={handleInviteMember}
+                disabled={isLoading || !inviteEmail.trim()}
+              >
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Đang gửi...
+                  </div>
+                ) : (
+                  <div className="flex items-center">
+                    <Mail className="w-4 h-4 mr-2" />
+                    Gửi lời mời
+                  </div>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

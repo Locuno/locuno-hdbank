@@ -274,4 +274,34 @@ export class CommunityWalletService {
       return { success: false, error: 'Failed to get wallet balance' };
     }
   }
+
+  static async updateWalletBalance(env: any, data: {
+    walletId: string;
+    amount: number;
+    transactionId: string;
+    description: string;
+    reference: string;
+  }) {
+    try {
+      const durableObjectId = env.COMMUNITY_WALLET_DO.idFromName(data.walletId);
+      const durableObject = env.COMMUNITY_WALLET_DO.get(durableObjectId);
+      
+      const response = await durableObject.fetch('http://localhost/update-wallet-balance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: data.amount,
+          transactionId: data.transactionId,
+          description: data.description,
+          reference: data.reference,
+        }),
+      });
+      
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('CommunityWalletService.updateWalletBalance error:', error);
+      return { success: false, error: 'Failed to update wallet balance' };
+    }
+  }
 }

@@ -12,6 +12,7 @@ import { healthRoutes } from './routes/health';
 import { family } from './routes/family';
 import { wallet } from './routes/wallet';
 import { rewards } from './routes/rewards';
+import { sepayWebhook } from './routes/sepay-webhook';
 import { UserProfileDO } from './durable-objects/UserProfileDO';
 import { FamilyDO } from './durable-objects/FamilyDO';
 import { CommunityWalletDO } from './durable-objects/CommunityWalletDO';
@@ -57,6 +58,7 @@ app.route('/api/transactions', transactionRoutes);
 app.route('/api/family', family);
 app.route('/api/wallet', wallet);
 app.route('/api/rewards', rewards);
+app.route('/api/sepay', sepayWebhook);
 
 // Health check endpoint (for load balancers)
 app.get('/health', (c) => {

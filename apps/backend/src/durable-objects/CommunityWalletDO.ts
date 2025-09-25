@@ -715,6 +715,64 @@ export class CommunityWalletDO {
     }
   }
 
+  async updateWalletBalance(data: {
+    amount: number;
+    transactionId: string;
+    description: string;
+    reference: string;
+  }): Promise<{ success: boolean; newBalance?: number; error?: string }> {
+    try {
+      // Get wallet details
+      const walletList = await this.storage.list({ prefix: 'wallet:' });
+      let wallet: CommunityWallet | null = null;
+      let walletId = '';
+      
+      for (const [key, w] of walletList) {
+        wallet = w;
+        walletId = w.id;
+        break; // Get the first (and should be only) wallet
+      }
+      
+      if (!wallet) {
+        return { success: false, error: 'Wallet not found' };
+      }
+
+      // Check if transaction already processed
+      const existingTransaction = await this.storage.get(`transaction:${data.transactionId}`);
+      if (existingTransaction) {
+        return { success: false, error: 'Transaction already processed' };
+      }
+
+      // Update wallet balance
+      const newBalance = wallet.balance + data.amount;
+      wallet.balance = newBalance;
+      wallet.updatedAt = new Date().toISOString();
+      await this.storage.put(`wallet:${walletId}`, wallet);
+
+      // Record the transaction
+      const transactionResult = await this.recordTransaction({
+        walletId,
+        type: 'deposit',
+        amount: data.amount,
+        description: data.description,
+        executedBy: 'system', // SePay system
+        balanceBefore: wallet.balance - data.amount,
+        balanceAfter: newBalance,
+        reference: data.reference,
+        notes: `SePay deposit - Transaction ID: ${data.transactionId}`
+      });
+
+      if (!transactionResult.success) {
+        return { success: false, error: 'Failed to record transaction' };
+      }
+
+      return { success: true, newBalance };
+    } catch (error) {
+      console.error('Error updating wallet balance:', error);
+      return { success: false, error: 'Failed to update wallet balance' };
+    }
+  }
+
   // Handle HTTP requests to the Durable Object
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
@@ -811,6 +869,12 @@ export class CommunityWalletDO {
             return Response.json({ success: false, error: 'Proposal ID required' }, { status: 400 });
           }
           const result = await this.getProposalVotes(proposalId);
+          return Response.json(result);
+        }
+
+        case 'POST /update-wallet-balance': {
+          const data = await request.json() as { amount: number; transactionId: string; description: string; reference: string; };
+          const result = await this.updateWalletBalance(data);
           return Response.json(result);
         }
 

@@ -11,7 +11,17 @@ import {
   Zap,
   Target,
   TrendingUp,
-  Users
+  Users,
+  CreditCard,
+  Car,
+  ShoppingBag,
+  Coffee,
+  Utensils,
+  Building,
+  Sparkles,
+  Flame,
+  Timer,
+  Percent
 } from 'lucide-react';
 
 interface UserPoints {

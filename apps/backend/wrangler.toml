@@ -93,7 +93,7 @@ preview_id = "your-preview-kv-namespace-id"
 # Environment variables (use wrangler secret for sensitive data)
 [vars]
 NODE_ENV = "development"
-CORS_ORIGIN = "https://a2eff557.locuno-hdbank-frontend.pages.dev"
+CORS_ORIGIN = "https://7e6a852e.locuno-hdbank-frontend.pages.dev"
 JWT_SECRET = "your-super-secret-jwt-key-change-this-in-production"
 JWT_EXPIRES_IN = "24h"
 BCRYPT_ROUNDS = "12"
