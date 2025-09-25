@@ -32,27 +32,27 @@ users.use('*', async (c, next) => {
     const jwtMiddleware = jwt({
       secret: config.jwt.secret,
     });
-    
+
     // First validate the JWT token
-    await jwtMiddleware(c, async () => {
+    return await jwtMiddleware(c, async () => {
       // If JWT validation succeeded, verify the user exists in our system
       const payload = c.get('jwtPayload');
       if (payload && payload.email) {
         const userService = new UserService(c.env);
         const userExists = await userService.getUserProfile(payload.email);
-        
+
         if (!userExists.success) {
           console.warn(`JWT token valid but user not found: ${payload.email}`);
           throw new Error('USER_NOT_FOUND');
         }
       }
-      
+
       // Continue to the actual endpoint
-      await next();
+      return await next();
     });
   } catch (error) {
     console.error('JWT middleware error:', error);
-    
+
     if (error instanceof Error && error.message === 'USER_NOT_FOUND') {
       return c.json({
         success: false,
@@ -61,7 +61,7 @@ users.use('*', async (c, next) => {
         code: 'AUTH_USER_MISSING'
       }, 404);
     }
-    
+
     return c.json({
       success: false,
       message: 'Authentication required',

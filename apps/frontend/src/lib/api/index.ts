@@ -12,12 +12,12 @@ const getBaseURL = (): string => {
     return 'http://localhost:8787';
   }
   
-  // Production fallback
-  return 'https://hdbank-backend.4rqnf2gvxf.workers.dev';
+  // Production fallback - using staging backend
+  return 'https://hdbank-backend-staging.4rqnf2gvxf.workers.dev';
 };
 
 // Fallback URL for when localhost is not available
-const PRODUCTION_URL = 'https://hdbank-backend.4rqnf2gvxf.workers.dev';
+const PRODUCTION_URL = 'https://hdbank-backend-staging.4rqnf2gvxf.workers.dev';
 let currentBaseURL = getBaseURL();
 let hasTriedFallback = false;
 

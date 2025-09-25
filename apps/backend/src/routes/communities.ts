@@ -12,10 +12,10 @@ communities.use('*', async (c, next) => {
     const jwtMiddleware = jwt({
       secret: config.jwt.secret,
     });
-    
-    await jwtMiddleware(c, async () => {
+
+    return await jwtMiddleware(c, async () => {
       // Continue to the actual endpoint
-      await next();
+      return await next();
     });
   } catch (error) {
     console.error('JWT middleware error in communities:', error);

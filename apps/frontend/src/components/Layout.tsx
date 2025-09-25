@@ -30,7 +30,7 @@ export function Layout({ children }: LayoutProps) {
     { name: 'Trang chủ', href: '/', icon: Home },
     { name: 'Gia đình', href: '/family', icon: Heart },
     { name: 'Cộng đồng', href: '/community', icon: Users },
-    { name: 'Phần thưởng', href: '/rewards', icon: Gift },
+    { name: 'Deals & Đấu Giá', href: '/rewards', icon: Gift },
     { name: 'Đấu giá của tôi', href: '/my-auctions', icon: Gavel },
   ];
 
