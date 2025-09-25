@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { jwt } from 'hono/jwt';
-import { CommunityWalletService } from '../services/CommunityWalletService';
+import { CommunityWalletService } from '../services/CommunityWalletService.js';
 
 const wallet = new Hono();
 
@@ -371,11 +371,12 @@ wallet.get('/:walletId/transactions', async (c) => {
       return c.json({ success: false, message: 'Access denied' }, 403);
     }
 
+    const categoryParam = c.req.query('category');
     const result = await CommunityWalletService.getTransactionHistory(c.env, {
       walletId,
       limit,
       offset,
-      category,
+      ...(categoryParam && { category: categoryParam }),
     });
 
     if (result.success) {

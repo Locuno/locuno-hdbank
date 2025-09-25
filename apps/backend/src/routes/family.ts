@@ -1,13 +1,13 @@
 import { Hono } from 'hono';
 import { jwt } from 'hono/jwt';
-import { FamilyService } from '../services/FamilyService';
+import { FamilyService } from '../services/FamilyService.js';
 
 const family = new Hono();
 
 // JWT middleware for all family routes
 family.use('*', async (c, next) => {
   const jwtMiddleware = jwt({
-    secret: c.env?.JWT_SECRET || 'fallback-secret',
+    secret: (c.env?.JWT_SECRET as string) || 'fallback-secret',
   });
   return jwtMiddleware(c, next);
 });

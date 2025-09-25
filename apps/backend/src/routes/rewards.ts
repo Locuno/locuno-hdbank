@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { jwt } from 'hono/jwt';
-import { SmartRewardsService } from '../services/SmartRewardsService';
+import { SmartRewardsService } from '../services/SmartRewardsService.js';
 
 const rewards = new Hono();
 
@@ -180,7 +180,7 @@ rewards.get('/points/activities', async (c) => {
       userId,
       limit,
       offset,
-      type,
+      ...(type && { type }),
     });
 
     if (result.success) {
@@ -214,8 +214,8 @@ rewards.get('/deals', async (c) => {
 
     const result = await SmartRewardsService.getDeals(c.env, {
       userId,
-      category,
-      minLevel: minLevel ? parseInt(minLevel) : undefined,
+      ...(category && { category }),
+      ...(minLevel && { minLevel: parseInt(minLevel) }),
       featured: featured === 'true',
       status,
     });
@@ -332,7 +332,7 @@ rewards.get('/deals/my-redemptions', async (c) => {
 
     const result = await SmartRewardsService.getUserRedemptions(c.env, {
       userId,
-      status,
+      ...(status && { status }),
       limit,
       offset,
     });
@@ -367,7 +367,7 @@ rewards.get('/auctions', async (c) => {
     const result = await SmartRewardsService.getAuctions(c.env, {
       userId,
       status,
-      category,
+      ...(category && { category }),
     });
 
     if (result.success) {
@@ -508,7 +508,7 @@ rewards.get('/challenges', async (c) => {
     const result = await SmartRewardsService.getChallenges(c.env, {
       userId,
       status,
-      category,
+      ...(category && { category }),
     });
 
     if (result.success) {
@@ -600,7 +600,7 @@ rewards.get('/challenges/my-participations', async (c) => {
 
     const result = await SmartRewardsService.getUserChallengeParticipations(c.env, {
       userId,
-      status,
+      ...(status && { status }),
     });
 
     if (result.success) {
@@ -630,7 +630,7 @@ rewards.get('/leaderboard', async (c) => {
     const result = await SmartRewardsService.getLeaderboard(c.env, {
       userId,
       period,
-      category,
+      ...(category && { category }),
       limit,
     });
 
