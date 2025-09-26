@@ -17,7 +17,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { 
-  transactionsApi, 
+
   Transaction, 
   TransactionSummary,
   formatTransactionAmount,
@@ -25,6 +25,7 @@ import {
   getTransactionStatusText,
   getTransactionStatusColor
 } from '@/lib/api/transactions';
+import { mockGetTransactions } from '@/data/transactionMockData'; // Import the mock function
 
 interface TransactionHistoryProps {
   communityId: string;
@@ -57,7 +58,8 @@ export function TransactionHistory({ communityId, isOpen, onClose }: Transaction
       if (filterType !== 'all') options.type = filterType;
       if (filterStatus !== 'all') options.status = filterStatus;
       
-      const response = await transactionsApi.getTransactions(communityId, options);
+      // Use the mock function instead of the real API
+      const response = await mockGetTransactions(options);
       
       if (response.success && response.data) {
         setTransactions(response.data.transactions);

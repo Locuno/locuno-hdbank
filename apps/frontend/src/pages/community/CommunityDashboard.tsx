@@ -297,7 +297,7 @@ export function CommunityDashboard() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Locuno Community</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Ví Cộng Đồng</h1>
           <p className="text-gray-600">Quản lý quỹ cộng đồng minh bạch và dân chủ</p>
         </div>
         <div className="flex space-x-3">

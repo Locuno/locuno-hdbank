@@ -25,6 +25,8 @@ import { AddMemberModal } from '@/components/AddMemberModal';
 import { memberService } from '@/lib/api/member';
 import { communityService } from '@/lib/api/community';
 
+
+
 interface Member {
   id: string;
   userId: string;
@@ -48,11 +50,12 @@ interface CommunityInfo {
 export function MemberManagement() {
   const { communityId } = useParams<{ communityId: string }>();
   const navigate = useNavigate();
+
   const [members, setMembers] = useState<Member[]>([]);
-  const [communityInfo, setCommunityInfo] = useState<CommunityInfo | null>(null);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [communityInfo, setCommunityInfo] = useState<CommunityInfo | null>(null);
 
   useEffect(() => {
     if (communityId) {
@@ -72,7 +75,12 @@ export function MemberManagement() {
       ]);
 
       if (communityResult.success && communityResult.data) {
-        setCommunityInfo(communityResult.data.community);
+        setCommunityInfo({
+          id: communityResult.data.community.id,
+          name: communityResult.data.community.name,
+          type: communityResult.data.community.type || 'community',
+          members: 0
+        });
       }
 
       if (membersResult.success && membersResult.data) {

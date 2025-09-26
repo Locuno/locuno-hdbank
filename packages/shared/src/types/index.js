@@ -1,83 +1,85 @@
-import { z } from 'zod';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.PaginatedResponseSchema = exports.PaginationSchema = exports.TransferRequestSchema = exports.AuthResponseSchema = exports.LoginRequestSchema = exports.ApiResponseSchema = exports.TransactionSchema = exports.AccountSchema = exports.UserSchema = void 0;
+var zod_1 = require("zod");
 // User Types
-export const UserSchema = z.object({
-    id: z.string().uuid(),
-    email: z.string().email(),
-    firstName: z.string().min(1),
-    lastName: z.string().min(1),
-    phoneNumber: z.string().optional(),
-    dateOfBirth: z.date().optional(),
-    createdAt: z.date(),
-    updatedAt: z.date(),
+exports.UserSchema = zod_1.z.object({
+    id: zod_1.z.string().uuid(),
+    email: zod_1.z.string().email(),
+    firstName: zod_1.z.string().min(1),
+    lastName: zod_1.z.string().min(1),
+    phoneNumber: zod_1.z.string().optional(),
+    dateOfBirth: zod_1.z.date().optional(),
+    createdAt: zod_1.z.date(),
+    updatedAt: zod_1.z.date(),
 });
 // Account Types
-export const AccountSchema = z.object({
-    id: z.string().uuid(),
-    userId: z.string().uuid(),
-    accountNumber: z.string(),
-    accountType: z.enum(['CHECKING', 'SAVINGS', 'CREDIT']),
-    balance: z.number(),
-    currency: z.string().default('USD'),
-    status: z.enum(['ACTIVE', 'INACTIVE', 'FROZEN']),
-    createdAt: z.date(),
-    updatedAt: z.date(),
+exports.AccountSchema = zod_1.z.object({
+    id: zod_1.z.string().uuid(),
+    userId: zod_1.z.string().uuid(),
+    accountNumber: zod_1.z.string(),
+    accountType: zod_1.z.enum(['CHECKING', 'SAVINGS', 'CREDIT']),
+    balance: zod_1.z.number(),
+    currency: zod_1.z.string().default('USD'),
+    status: zod_1.z.enum(['ACTIVE', 'INACTIVE', 'FROZEN']),
+    createdAt: zod_1.z.date(),
+    updatedAt: zod_1.z.date(),
 });
 // Transaction Types
-export const TransactionSchema = z.object({
-    id: z.string().uuid(),
-    fromAccountId: z.string().uuid().optional(),
-    toAccountId: z.string().uuid().optional(),
-    amount: z.number().positive(),
-    currency: z.string().default('USD'),
-    type: z.enum(['DEPOSIT', 'WITHDRAWAL', 'TRANSFER', 'PAYMENT']),
-    status: z.enum(['PENDING', 'COMPLETED', 'FAILED', 'CANCELLED']),
-    description: z.string().optional(),
-    reference: z.string().optional(),
-    createdAt: z.date(),
-    updatedAt: z.date(),
+exports.TransactionSchema = zod_1.z.object({
+    id: zod_1.z.string().uuid(),
+    fromAccountId: zod_1.z.string().uuid().optional(),
+    toAccountId: zod_1.z.string().uuid().optional(),
+    amount: zod_1.z.number().positive(),
+    currency: zod_1.z.string().default('USD'),
+    type: zod_1.z.enum(['DEPOSIT', 'WITHDRAWAL', 'TRANSFER', 'PAYMENT']),
+    status: zod_1.z.enum(['PENDING', 'COMPLETED', 'FAILED', 'CANCELLED']),
+    description: zod_1.z.string().optional(),
+    reference: zod_1.z.string().optional(),
+    createdAt: zod_1.z.date(),
+    updatedAt: zod_1.z.date(),
 });
 // API Response Types
-export const ApiResponseSchema = z.object({
-    success: z.boolean(),
-    message: z.string().optional(),
-    data: z.any().optional(),
-    errors: z.array(z.string()).optional(),
+exports.ApiResponseSchema = zod_1.z.object({
+    success: zod_1.z.boolean(),
+    message: zod_1.z.string().optional(),
+    data: zod_1.z.any().optional(),
+    errors: zod_1.z.array(zod_1.z.string()).optional(),
 });
 // Authentication Types
-export const LoginRequestSchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(8),
+exports.LoginRequestSchema = zod_1.z.object({
+    email: zod_1.z.string().email(),
+    password: zod_1.z.string().min(8),
 });
-export const AuthResponseSchema = z.object({
-    user: UserSchema,
-    token: z.string(),
-    refreshToken: z.string(),
-    expiresIn: z.number(),
+exports.AuthResponseSchema = zod_1.z.object({
+    user: exports.UserSchema,
+    token: zod_1.z.string(),
+    refreshToken: zod_1.z.string(),
+    expiresIn: zod_1.z.number(),
 });
 // Transfer Request Types
-export const TransferRequestSchema = z.object({
-    fromAccountId: z.string().uuid(),
-    toAccountId: z.string().uuid(),
-    amount: z.number().positive(),
-    description: z.string().optional(),
-    reference: z.string().optional(),
+exports.TransferRequestSchema = zod_1.z.object({
+    fromAccountId: zod_1.z.string().uuid(),
+    toAccountId: zod_1.z.string().uuid(),
+    amount: zod_1.z.number().positive(),
+    description: zod_1.z.string().optional(),
+    reference: zod_1.z.string().optional(),
 });
 // Pagination Types
-export const PaginationSchema = z.object({
-    page: z.number().int().positive().default(1),
-    limit: z.number().int().positive().max(100).default(20),
-    sortBy: z.string().optional(),
-    sortOrder: z.enum(['asc', 'desc']).default('desc'),
+exports.PaginationSchema = zod_1.z.object({
+    page: zod_1.z.number().int().positive().default(1),
+    limit: zod_1.z.number().int().positive().max(100).default(20),
+    sortBy: zod_1.z.string().optional(),
+    sortOrder: zod_1.z.enum(['asc', 'desc']).default('desc'),
 });
-export const PaginatedResponseSchema = z.object({
-    data: z.array(z.any()),
-    pagination: z.object({
-        page: z.number(),
-        limit: z.number(),
-        total: z.number(),
-        totalPages: z.number(),
-        hasNext: z.boolean(),
-        hasPrev: z.boolean(),
+exports.PaginatedResponseSchema = zod_1.z.object({
+    data: zod_1.z.array(zod_1.z.any()),
+    pagination: zod_1.z.object({
+        page: zod_1.z.number(),
+        limit: zod_1.z.number(),
+        total: zod_1.z.number(),
+        totalPages: zod_1.z.number(),
+        hasNext: zod_1.z.boolean(),
+        hasPrev: zod_1.z.boolean(),
     }),
 });
-//# sourceMappingURL=index.js.map
