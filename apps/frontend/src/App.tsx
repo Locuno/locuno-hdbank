@@ -6,6 +6,7 @@ import { RegisterPage } from '@/pages/RegisterPage';
 import { OnboardingPage } from '@/pages/OnboardingPage';
 import { FamilyDashboard } from '@/pages/family/FamilyDashboard';
 import { CommunityDashboard } from '@/pages/community/CommunityDashboard';
+import { MemberManagement } from '@/pages/community/MemberManagement';
 import { RewardsPage } from '@/pages/RewardsPage';
 import { MyAuctionsPage } from './pages/MyAuctionsPage';
 import { ProfilePage } from '@/pages/ProfilePage';
@@ -21,6 +22,7 @@ function App() {
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/family" element={<FamilyDashboard />} />
         <Route path="/community" element={<CommunityDashboard />} />
+        <Route path="/community/:communityId/members" element={<MemberManagement />} />
         <Route path="/rewards" element={<RewardsPage />} />
         <Route path="/my-auctions" element={<MyAuctionsPage />} />
         <Route path="/profile" element={<ProfilePage />} />

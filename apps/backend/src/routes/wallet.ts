@@ -110,15 +110,21 @@ wallet.post('/:walletId/invite', async (c) => {
     const payload = c.get('jwtPayload');
     const userId = payload.userId;
     const walletId = c.req.param('walletId');
-    const { email, role = 'member' } = await c.req.json();
+    const { email, phoneNumber, role = 'member' } = await c.req.json();
 
     if (!email) {
       return c.json({ success: false, message: 'Email is required' }, 400);
     }
 
+    // Validate phone number if provided
+    if (phoneNumber && !/^[0-9]{10,11}$/.test(phoneNumber.replace(/\s/g, ''))) {
+      return c.json({ success: false, message: 'Invalid phone number format' }, 400);
+    }
+
     const result = await CommunityWalletService.inviteMember(c.env, {
       walletId,
       invitedEmail: email,
+      phoneNumber: phoneNumber ? phoneNumber.replace(/\s/g, '') : undefined,
       invitedBy: userId,
       role,
     });

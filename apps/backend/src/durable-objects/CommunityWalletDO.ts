@@ -138,6 +138,7 @@ const WalletInvitationSchema = z.object({
   id: z.string(),
   walletId: z.string(),
   invitedEmail: z.string().email(),
+  phoneNumber: z.string().optional(),
   invitedBy: z.string(), // userId
   role: z.enum(['admin', 'member', 'viewer']),
   token: z.string(),
@@ -325,6 +326,7 @@ export class CommunityWalletDO {
   async inviteMember(data: {
     walletId: string;
     invitedEmail: string;
+    phoneNumber?: string;
     invitedBy: string;
     role: 'admin' | 'member' | 'viewer';
   }): Promise<{ success: boolean; invitationId?: string; error?: string }> {
@@ -343,6 +345,7 @@ export class CommunityWalletDO {
         id: invitationId,
         walletId: data.walletId,
         invitedEmail: data.invitedEmail,
+        phoneNumber: data.phoneNumber,
         invitedBy: data.invitedBy,
         role: data.role,
         token,
@@ -871,7 +874,7 @@ export class CommunityWalletDO {
   }
 
   // Credit Score Methods
-  async computeScore(): Promise<{ value: number; reasons: string[]; factors: any }> {
+  async computeScore(): Promise<{ updatedAt: string; value: number; reasons: string[]; factors: any }> {
     try {
       // Get wallet details
       const walletList = await this.storage.list({ prefix: 'wallet:' });
@@ -1068,12 +1071,20 @@ export class CommunityWalletDO {
       wallet.updatedAt = new Date().toISOString();
       await this.storage.put(`wallet:${walletId}`, wallet);
 
-      return {
+      const result: { approved: boolean; creditLineId?: string; limit?: number; reasons: string[] } = {
         approved,
-        creditLineId,
-        limit,
         reasons
       };
+
+      if (creditLineId) {
+        result.creditLineId = creditLineId;
+      }
+
+      if (limit !== undefined) {
+        result.limit = limit;
+      }
+
+      return result;
     } catch (error) {
       console.error('Error applying for loan:', error);
       throw error;
@@ -1246,7 +1257,7 @@ export class CommunityWalletDO {
         }
 
         case 'POST /invite-member': {
-          const data = await request.json() as { walletId: string; invitedEmail: string; invitedBy: string; role: 'admin' | 'member' | 'viewer'; };
+          const data = await request.json() as { walletId: string; invitedEmail: string; phoneNumber?: string; invitedBy: string; role: 'admin' | 'member' | 'viewer'; };
           const result = await this.inviteMember(data);
           return Response.json(result);
         }

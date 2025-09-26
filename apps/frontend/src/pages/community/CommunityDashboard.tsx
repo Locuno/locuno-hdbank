@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -91,6 +92,7 @@ const getStatusText = (status: string) => {
 };
 
 export function CommunityDashboard() {
+  const navigate = useNavigate();
   const [selectedGroup, setSelectedGroup] = useState<string>('');
   const [communityGroups, setCommunityGroups] = useState<CommunityGroup[]>([]);
   const [proposals, setProposals] = useState<Proposal[]>([]);
@@ -615,7 +617,10 @@ export function CommunityDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+        <Card
+          className="hover:shadow-md transition-shadow cursor-pointer"
+          onClick={() => selectedGroup && navigate(`/community/${selectedGroup}/members`)}
+        >
           <CardContent className="p-6 text-center">
             <Users className="w-12 h-12 text-purple-600 mx-auto mb-3" />
             <h3 className="font-semibold mb-2">Quản lý thành viên</h3>

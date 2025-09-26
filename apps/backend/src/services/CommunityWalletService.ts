@@ -86,6 +86,7 @@ export class CommunityWalletService {
   static async inviteMember(env: any, data: {
     walletId: string;
     invitedEmail: string;
+    phoneNumber?: string;
     invitedBy: string;
     role: string;
   }) {

@@ -274,6 +274,11 @@ export const communityService = {
       };
     }
   },
+
+  // Alias for getCommunityDetails
+  getCommunityById(communityId: string): Promise<ApiResponse<{ community: CommunityGroup }>> {
+    return this.getCommunityDetails(communityId);
+  }
 };
 
 export default communityService;

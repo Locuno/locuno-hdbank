@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Locuno Hackathon Presentation</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            background-color: #F3F4F6;
+        }
+        .slider {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            padding: 40px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        .slide.active {
+            opacity: 1;
+        }
+        .slide-content {
+            max-width: 900px;
+        }
+        h1 {
+            font-size: 3.5rem;
+            color: #111827;
+            margin-bottom: 1rem;
+        }
+        h2 {
+            font-size: 2.5rem;
+            color: #1E40AF;
+            margin-bottom: 2rem;
+            border-bottom: 3px solid #60A5FA;
+            padding-bottom: 0.5rem;
+            display: inline-block;
+        }
+        p, ul {
+            font-size: 1.5rem;
+            line-height: 1.6;
+            color: #374151;
+        }
+        ul {
+            text-align: left;
+            list-style-position: inside;
+            display: inline-block;
+        }
+        li {
+            margin-bottom: 1rem;
+        }
+        .slide-footer {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 1rem;
+            color: #6B7280;
+        }
+        .slide-counter {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            font-size: 1rem;
+            color: #6B7280;
+        }
+        .logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: #1E40AF;
+        }
+        .navigation {
+            position: absolute;
+            bottom: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+        }
+        .nav-btn {
+            background: rgba(0,0,0,0.2);
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="slider">
+        <div class="logo">Locuno</div>
+
+        <div class="slide active" id="slide1">
+            <div class="slide-content">
+                <h1>Locuno: Engineering Trust</h1>
+                <p>Community Wallet + Social Credit Score + ESG Transparency</p>
+            </div>
+        </div>
+
+        <div class="slide" id="slide2">
+            <div class="slide-content">
+                <h2>The Problem</h2>
+                <ul>
+                    <li><strong>Families:</strong> Lack of a private, consent-based safety net.</li>
+                    <li><strong>Communities:</strong> Opaque fund management via Zalo & Excel, leading to mistrust.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="slide" id="slide3">
+            <div class="slide-content">
+                <h2>The Solution: A Unified Trust Platform</h2>
+                <ul>
+                    <li><strong>Community Wallet:</strong> 2/3 Approval voting, real-time ledger, VietQR deposits.</li>
+                    <li><strong>Social Credit Score:</strong> Explainable 0-100 score unlocking bank-backed community credit.</li>
+                    <li><strong>ESG Transparency:</strong> Measurable Social + Governance impact with an auditable history.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="slide" id="slide4">
+            <div class="slide-content">
+                <h2>Live Demo Flow</h2>
+                <ol style="text-align: left; display: inline-block; font-size: 1.4rem; line-height: 1.8;">
+                    <li>Deposit via VietQR &rarr; Balance & Ledger Update.</li>
+                    <li>Score Recomputes &rarr; Shows Reasons & Improvement Tips.</li>
+                    <li>Apply for Loan &rarr; Auto-approved based on score.</li>
+                    <li>Disburse Funds &rarr; Repayments via "REPAY &lt;id&gt; &lt;amount&gt;".</li>
+                    <li>Create Spend Request &rarr; Executed after 2/3 Vote.</li>
+                    <li>ESG Card Updates &rarr; Participation & Governance metrics.</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="slide" id="slide5">
+            <div class="slide-content">
+                <h2>Technology & APIs</h2>
+                 <ul>
+                    <li><strong>Architecture:</strong> Cloudflare Workers, Durable Objects, "Business Logic Blockchain".</li>
+                    <li><strong>Key APIs:</strong></li>
+                    <li style="font-family: monospace; font-size: 1.2rem;">POST /communities/:id/credit/score</li>
+                    <li style="font-family: monospace; font-size: 1.2rem;">GET /communities/:id/credit/score</li>
+                    <li style="font-family: monospace; font-size: 1.2rem;">POST /communities/:id/loan/(apply | disburse | repay)</li>
+                    <li style="font-family: monospace; font-size: 1.2rem;">GET /communities/:id/loan/status</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="slide" id="slide6">
+            <div class="slide-content">
+                <h2>Value to Bank & Ecosystem</h2>
+                <ul>
+                    <li>Drives new deposits and enables responsible credit expansion.</li>
+                    <li>Provides transparent governance with measurable ESG impact.</li>
+                    <li>Acts as a Loyalty OS for the entire Sovico ecosystem (HDBank, Vietjet, etc.).</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="slide" id="slide7">
+            <div class="slide-content">
+                <h2>Roadmap & Risk Mitigation</h2>
+                <ul>
+                    <li><strong>Day 1:</strong> End-to-end live demo.</li>
+                    <li><strong>Month 1:</strong> Pilots with residential communities and schools.</li>
+                    <li><strong>Quarter 2:</strong> Family SOS feature, richer social signals for scoring.</li>
+                    <li><strong>Risks:</strong> Privacy/bias, fraud, and governance risks mitigated via consent, eKYC, and transparent audit trails.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="slide" id="slide8">
+            <div class="slide-content">
+                <h2>The Ask: Call to Action</h2>
+                <p style="font-size: 2rem; font-weight: bold; color: #1E40AF;">Approve a pilot program to validate that trust is the most powerful driver of growth, loyalty, and financial inclusion.</p>
+            </div>
+        </div>
+
+        <div class="slide-footer">Locuno Hackathon 2025</div>
+        <div class="slide-counter">1 / 8</div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const slideCounter = document.querySelector('.slide-counter');
+        const totalSlides = slides.length;
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.classList.toggle('active', i === index);
+            });
+            slideCounter.textContent = `${index + 1} / ${totalSlides}`;
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            showSlide(currentSlide);
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            showSlide(currentSlide);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            }
+        });
+
+        showSlide(currentSlide);
+    </script>
+</body>
+</html>
