@@ -8,9 +8,9 @@ const getBaseURL = (): string => {
   }
   
   // In development mode, try localhost first, fallback to production
-  if (import.meta.env.DEV) {
-    return 'http://localhost:8787';
-  }
+  //if (import.meta.env.DEV) {
+  //  return 'http://localhost:8787';
+  //}
   
   // Production fallback
   return 'https://hdbank-backend-prod.4rqnf2gvxf.workers.dev';
