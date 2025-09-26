@@ -24,7 +24,7 @@ export function HomePage() {
     },
     {
       icon: Users,
-      title: 'Locuno Community',
+      title: 'Locuno Community Wallets',
       description: 'Quản lý quỹ cộng đồng minh bạch với hệ thống bỏ phiếu dân chủ 2/3 đa số.',
       color: 'text-blue-600 bg-blue-100'
     },

@@ -100,7 +100,7 @@ export function OnboardingPage() {
               <Card className="border-orange-200 hover:border-orange-400 transition-colors">
                 <CardHeader className="text-center">
                   <Users className="w-8 h-8 text-orange-500 mx-auto mb-2" />
-                  <CardTitle className="text-lg">Locuno Community</CardTitle>
+                  <CardTitle className="text-lg">Locuno Community Wallets</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CardDescription>

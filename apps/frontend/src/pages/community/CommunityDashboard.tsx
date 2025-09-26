@@ -23,7 +23,11 @@ import { CreateCommunityModal } from '@/components/CreateCommunityModal';
 import { QRCodeModal } from '@/components/QRCodeModal';
 import { CreateProposalModal } from '@/components/CreateProposalModal';
 import { TransactionHistory } from '@/components/TransactionHistory';
-import { CreditScoreCard } from '@/components/CreditScoreCard';
+import { CommunityCreditScore } from '@/components/CommunityCreditscore';
+import {
+  mockCreditScoreBreakdown,
+  mockCreditScoreBenefits
+} from '@/data/creditScoreMockData';
 import { LoanManagementCard } from '@/components/LoanManagementCard';
 import { communityService } from '@/lib/api/community';
 import { proposalsApi } from '@/lib/api/proposals';
@@ -484,10 +488,14 @@ export function CommunityDashboard() {
       {/* Credit Score and Loan Management */}
       {currentGroup && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <CreditScoreCard 
-            communityId={currentGroup.id}
+          <CommunityCreditScore
+            creditScore={mockCreditScoreBreakdown}
+            benefits={mockCreditScoreBenefits}
+            onViewDetails={() => {
+              navigate(`/community/${currentGroup.id}/credit-score`);
+            }}
           />
-          <LoanManagementCard 
+          <LoanManagementCard
             communityId={currentGroup.id}
             balance={currentGroup.balance}
           />
