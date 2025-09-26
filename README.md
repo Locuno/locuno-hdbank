@@ -1,6 +1,6 @@
 # Locuno HD Bank Digital Platform
 
-Demo
+## Demo Account 
 - https://galaxy.locuno.com
 - user: test@locuno.com / password: testpassword123
 

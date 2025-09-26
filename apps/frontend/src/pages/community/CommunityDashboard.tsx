@@ -9,9 +9,7 @@ import {
   TrendingUp,
   Plus,
   Settings,
-  Clock,
   CheckCircle,
-  XCircle,
   DollarSign,
   FileText,
   Eye,
@@ -24,6 +22,7 @@ import { QRCodeModal } from '@/components/QRCodeModal';
 import { CreateProposalModal } from '@/components/CreateProposalModal';
 import { TransactionHistory } from '@/components/TransactionHistory';
 import { CommunityCreditScore } from '@/components/CommunityCreditscore';
+import { SpendingProposalsCard } from '@/components/SpendingProposalsCard';
 import {
   mockCreditScoreBreakdown,
   mockCreditScoreBenefits
@@ -75,25 +74,7 @@ const formatCurrency = (amount: number, currency: string) => {
   return `${amount} ${currency}`;
 };
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'pending': return 'text-yellow-600 bg-yellow-100';
-    case 'approved': return 'text-green-600 bg-green-100';
-    case 'rejected': return 'text-red-600 bg-red-100';
-    case 'executed': return 'text-blue-600 bg-blue-100';
-    default: return 'text-gray-600 bg-gray-100';
-  }
-};
 
-const getStatusText = (status: string) => {
-  switch (status) {
-    case 'pending': return 'Đang bỏ phiếu';
-    case 'approved': return 'Đã phê duyệt';
-    case 'rejected': return 'Bị từ chối';
-    case 'executed': return 'Đã thực hiện';
-    default: return 'Không rõ';
-  }
-};
 
 export function CommunityDashboard() {
   const navigate = useNavigate();
@@ -159,11 +140,7 @@ export function CommunityDashboard() {
     fetchProposals();
   }, [selectedGroup]);
 
-  const getVotePercentage = (proposal: Proposal) => {
-    if (!currentGroup) return 0;
-    const requiredVotes = Math.ceil(currentGroup.members * 2 / 3);
-    return (proposal.votes.approve / requiredVotes) * 100;
-  };
+
 
   const handleCommunityCreated = (newCommunity: CommunityGroup) => {
     setCommunityGroups(prev => [...prev, newCommunity]);
@@ -214,55 +191,7 @@ export function CommunityDashboard() {
     }
   };
 
-  const handleVote = async (proposalId: string, voteType: 'approve' | 'reject') => {
-    try {
-      // For now, update local state (will be replaced with API call)
-      setProposals(prev => prev.map(proposal => {
-        if (proposal.id === proposalId) {
-          const updatedVotes = {
-            ...proposal.votes,
-            [voteType]: proposal.votes[voteType] + 1,
-            total: proposal.votes.total + 1
-          };
-          
-          // Check if proposal should be approved (2/3 majority)
-          const currentGroup = communityGroups.find(g => g.id === selectedGroup);
-          const requiredVotes = currentGroup ? Math.ceil((currentGroup.members * 2) / 3) : 1;
-          
-          let newStatus = proposal.status;
-          if (updatedVotes.approve >= requiredVotes) {
-            newStatus = 'approved';
-          } else if (updatedVotes.reject > (currentGroup?.members || 0) - requiredVotes) {
-            newStatus = 'rejected';
-          }
-          
-          return {
-            ...proposal,
-            votes: updatedVotes,
-            status: newStatus
-          };
-        }
-        return proposal;
-      }));
-      
-      alert(`Bạn đã bỏ phiếu ${voteType === 'approve' ? 'đồng ý' : 'từ chối'} thành công!`);
-      
-      // TODO: Uncomment when backend API is ready
-      // const response = await proposalsApi.voteOnProposal({
-      //   proposalId,
-      //   voteType
-      // });
-      // if (response.success) {
-      //   setProposals(prev => prev.map(p => 
-      //     p.id === proposalId ? response.data.proposal : p
-      //   ));
-      //   alert(`Bạn đã bỏ phiếu ${voteType === 'approve' ? 'đồng ý' : 'từ chối'} thành công!`);
-      // }
-    } catch (error) {
-      console.error('Error voting:', error);
-      alert('Có lỗi xảy ra khi bỏ phiếu. Vui lòng thử lại.');
-    }
-  };
+
 
   // Show loading state
   if (loading) {
@@ -502,104 +431,10 @@ export function CommunityDashboard() {
         </div>
       )}
 
-      {/* Active Proposals */}
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle>Đề xuất chi tiêu</CardTitle>
-              <CardDescription>Hệ thống bỏ phiếu 2/3 đa số để phê duyệt</CardDescription>
-            </div>
-            <Button variant="outline" size="sm">
-              <Eye className="w-4 h-4 mr-2" />
-              Xem tất cả
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-              {proposals.filter(proposal => !proposal.communityId || proposal.communityId === selectedGroup).map((proposal) => {
-              const votePercentage = getVotePercentage(proposal);
-              const requiredVotes = Math.ceil(currentGroup!.members * 2 / 3);
-              
-              return (
-                <div key={proposal.id} className="border rounded-lg p-4 hover:bg-gray-50">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="font-semibold">{proposal.title}</h3>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(proposal.status)}`}>
-                          {getStatusText(proposal.status)}
-                        </span>
-                        <span className="text-xs bg-gray-100 px-2 py-1 rounded">
-                          {proposal.category}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-2">{proposal.description}</p>
-                      <div className="flex items-center space-x-4 text-sm text-gray-500">
-                        <span>Đề xuất bởi: {proposal.proposer}</span>
-                        <div className="flex items-center space-x-1">
-                          <Clock className="w-4 h-4" />
-                          <span>Hạn: {proposal.deadline}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right ml-4">
-                      <p className="text-lg font-bold text-orange-600">
-                        {formatCurrency(proposal.amount, proposal.currency)}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Tiến độ bỏ phiếu ({proposal.votes.approve}/{requiredVotes} cần thiết)</span>
-                      <span>{Math.round(votePercentage)}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${Math.min(votePercentage, 100)}%` }}
-                      />
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center space-x-4 text-sm">
-                        <div className="flex items-center space-x-1 text-green-600">
-                          <CheckCircle className="w-4 h-4" />
-                          <span>{proposal.votes.approve} đồng ý</span>
-                        </div>
-                        <div className="flex items-center space-x-1 text-red-600">
-                          <XCircle className="w-4 h-4" />
-                          <span>{proposal.votes.reject} từ chối</span>
-                        </div>
-                      </div>
-                      {proposal.status === 'pending' && (
-                        <div className="flex space-x-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="text-red-600 border-red-200"
-                            onClick={() => handleVote(proposal.id, 'reject')}
-                          >
-                            Từ chối
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            className="bg-green-600 hover:bg-green-700"
-                            onClick={() => handleVote(proposal.id, 'approve')}
-                          >
-                            Đồng ý
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Spending Proposals */}
+      {currentGroup && (
+        <SpendingProposalsCard communityId={currentGroup.id} />
+      )}
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
